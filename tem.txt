@@ -1,0 +1,71 @@
+
+
+###Start from HISTABRUT
+#AveAndMoms(f,x,N): Given a probability generating function
+#f(x) (a polynomial, rational function and possibly beyond)
+#returns a list whose first entry is the average 
+#(alias expectation, alias mean)
+#followed by the variance, the third moment (about the mean) and
+#so on, until the N-th moment (about the mean).
+#If f(1) is not 1, than it first normalizes it by dividing
+#by f(1) (if it is not 0) .
+#For example, try:
+#AveAndMoms(((1+x)/2)^100,x,4);
+
+AveAndMoms:=proc(f,x,N) local mu,F,memu1,gu,i:
+mu:=simplify(subs(x=1,f)):
+
+if mu=0 then
+print(f, `is neither a prob. generating function nor can it be made so`):
+RETURN(FAIL):
+fi:
+
+F:=f/mu:
+
+
+memu1:=simplify(subs(x=1,diff(F,x))):
+
+gu:=[memu1]:
+
+F:=F/x^memu1:
+
+F:=x*diff(F,x):
+for i from 2 to N do
+ F:=x*diff(F,x):
+ gu:=[op(gu),simplify(subs(x=1,F))]:
+od:
+
+gu:
+
+end:
+
+
+#AlphaSeq(f,x,N): Given a probability generating function
+#f(x) (a polynomial, rational function and possibly beyond)
+#returns a list, of length N, whose 
+#(i) First entry is the average
+#(ii): Second entry is the variance
+#for i=3...N, the i-th entry is the so-called alpha-coefficients
+#that is the i-th moment about the mean divided by the
+#variance to the power i/2 (For example, i=3 is the skewness
+#and i=4 is the Kurtosis)
+#If f(1) is not 1, than it first normalizes it by dividing
+#by f(1) (if it is not 0) .
+#For example, try:
+#AlphaSeq(((1+x)/2)^100,x,4);
+AlphaSeq:=proc(f,x,N) local gu,i:
+ gu:=AveAndMoms(f,x,N):
+ if gu=FAIL then
+  RETURN(gu):
+ fi:
+
+if gu[2]=0 then
+print(`The variance is 0`):
+  RETURN(FAIL):
+fi:
+
+[gu[1],gu[2],seq(gu[i]/gu[2]^(i/2),i=3..N)]:
+
+end:
+###end from HISTABRUT
+

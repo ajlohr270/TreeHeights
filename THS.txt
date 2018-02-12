@@ -1,0 +1,253 @@
+with(combinat):
+
+Help:=proc()
+print(`getApproxFunSol(eq,R,x,n,Rinit), FunEqForDegreeSet(S,R,x) FunEqForDegreeSetOrdered(S,R,x),cartProd(ListOfSets),ListAllTrees(n,S),TreeTotalVertices(Tree),TreeTotalHeight(Tree),fOfyForx(n,y,S),AlphaSeqForS(S,maxTime,N),SymbRationalDiff(R,eq,x,n),ReduceRational(rat,eq,R),ReducePoly(P,eq,R),FyFixedPoint(S,x,y,n),cartProd(ListOfSets),ListAllTrees(n,S),TreeTotalVertices(Tree),TreeTotalHeight(Tree),fOfyForx(n,y,S),AlphaSeqForS(S,maxTime,N),RemoveFails(L)`):
+print(``):
+print(`Run the command SpecificHelp on one of these function's names to get a description`):
+end:
+
+SpecificHelp:=proc(functionName):
+if(functionName=getApproxFunSol) then
+print(`given a function equation for the function R in the variable x, computes the first n terms of the fixed point starting with inital value for the function Rinit`):
+print(`for example, getApproxFunSol(x*R^2+x^3, R, x, 10, 1) would return x^3+x^7, since the true fixed point of the functional eqation R= x*R^2+x^3 has only x^3+x^7 in its first ten powers of x.`):
+
+elif (functionName=FunEqForDegreeSet) then
+print(`given a set of allowed degrees S, outputs a functional equation for the generating function of the number of unordered trees. R is the name of the function used and x it's variable.`):
+print(`for example, if we allow 0,2, or 5 children, this corresponds to calling FunEqForDegreeSet({0,2,5},R,x), which outputs x+x*R^2+x*R^5 representing the equation R = x+x*R^2+x*R^5`):
+elif (functionName=FunEqForDegreeSetOrdered) then
+
+print(`given a set of allowed degrees S, outputs a functional equation for the generating function of the number of ordered trees. R is the name of the function used and x it's variable.`):
+print(`for example, if we allow 0,2, or 5 children, this corresponds to calling FunEqForDegreeSet({0,2,5},R,x), which outputs x+x*R^2/2+x*R^5/120 representing the equation R = x+x*R^2/2+x*R^5/120`):
+
+elif (functionName=SymbRationalDiff) then
+print(`outputs an expression for the nth derivative of a function R in the variable x that satisfies the relation eq`):
+print(`for example, if we know that R satisfies the equation R = R^2*x+x^2, and wanted to find a formula for the second derivative of R, as a function of R, then, we would call SymbRationalDiff(R,R^2*x+x^2-R,x,2), getting the lovely answer that R'' = (2*(x^5+4*R*x^3+2*x^2-R))/(x^2*(8*R*x^4-4*x^3-2*R*x+1))`):
+print(`The expression will have no powers of R greater than or equal to the highest power of R that appears in the equation eq`):
+
+elif(functionName=FyFixedPoint) then
+print(`iterates the functional equation arising from the allowed degree set S and truncates up to the nth power of x`):
+print(`continues this until the result no longer changes, giving the true solution up to the nth power of x`):
+print(`for example, running FyFixedPoint({0,2},x,y,3) gives x^3*y^2+x, since there is one tre with no total height on one vertex, no trees with exactly 0 or 2 children on two vertices, and one tree on three vertices, with total height 2`):
+
+elif(functionName=ReduceRational) then
+print(`first argument is a rational expression in R, and R satisfies the polynomial relation eq=0`):
+print(`This procedure will simplify the given rational expression using the given eq, reducing the degree on top and bottom to at most degree(eq,R)-1`):
+print(`For example, ReduceRational((y^3+1)/(y^2), y^3+y^2-2,y) = (-y^2+3)/(y^2)`):
+
+elif(functionName=ReducePoly) then
+print(`first argument is a polynomail expression in R, and R satisfies the polynomial relation eq=0`):
+print(`This procedure will simplify the given polynomial expression by one step using the given eq, reducing the degree by at least 1`):
+print(`For example, ReducePoly(3y^3+y^2, y^3+y^2+1,y) = -2y^2-3`):
+elif (functionName=RemoveFails) then
+print(`Removes all of the occurrences of FAIL from a list, shifting terms earlier to fill in the gaps`):
+print(`For example, RemoveFails([FAIL,2,5,2,FAIL,FAIL,10,FAIL]) = [2,5,2,10]`);
+
+elif (functionName=cartProd) then
+print(`given a ListOfSets, outputs the set of lists which has all the lists that have the nth element drawn from the nth set in the given list`):
+print(`For example, cartProd([{0,1},{0,1},{0,1},{0,1}]) returns the binary representations of the numbers 0-15 {[0,0,0,0],[0,0,0,1], ... , [1,1,1,1]}`):
+
+elif (functionName=ListAllTrees) then
+print(`outputs all (ordered) trees on n vertices that have given set S of allowed degrees`):
+print(`For example, ListAllTrees(5,{0,2}) outputs {[[], [[], []]], [[[], []], []]}, which represents the two complete binary trees on 5 vertices, the first where the right child of the root is size three, the second where the left child of the root is size three`);
+
+elif (functionName=TreeTotalVertices) then
+print(`given a tree, outputs the number of vertices that it has`):
+print(`For example, TreeTotalVertices([[], [[], []]]) = 5, since the input is an encoding of a tree on five vertices`):
+
+elif (functionName=TreeTotalHeight) then
+print(`given a tree, outputs the sum over all vertices of that vertex's depth`):
+print(`For example, TreeTotalVertices([[], [[], []]]) = 6, since the input is an encoding of a tree with two vertices at depth 1 and two vertices at depth 2`):
+
+elif (functionName=fOfyForx) then
+print(`gives probability generating function (in the variable y) for a given number of vertices. Works in a slow way by enumerating all trees and counting them up by height`):
+print(`For example, fOfyForx(7,y,{0,2}) = y^10+4 y^12, since there are 5 complete binary trees on 7 vertices, one of which has 2 vertices at depth 1 and 4 at depth 2 giving total height 10, and four which have two at depth 1, two at depth 2, and 2 at depth 3, giving total height 12`):
+print(`in order to recover the multivarable generating function that we care about, you would need to call this for all n up to the maximum degree in x and multiply by x^n for each.`):
+
+elif (functionName=AlphaSeqForS) then
+print(`gives the first N Alpha values for the total height statistic for each possible number of vertices`):
+print(`will keep trying higher and higher numbers of vertices until the time to compute that number of vertices gets over the given threshold`):
+print(`This does not guarentee that the computation will take less than the given time, but just that if an iteration of the loop ever takes more than the second argument many seconds, then that will be the last iteration`):
+print(`for Example, AlphaSeqForS({0, 2}, .05, 2) gives`):
+print(`[[58/5, 16/25], [130/7, 152/49], [562/21, 3944/441], [1190/33, 21776/1089], [19898/429, 7049888/184041], [41226/715, 33785704/511225]]`):
+print(`which are the average and normalized variance for the first six numbers of vertices that actually have trees of those sizes.`):
+print(`You may get a greater or fewer number of terms based on if your computer is faster or slower respectively, for this example, it stopped because the last case took mor than 1/20th of a second`):
+else:
+print(`unrecognized function name, please run Help() to see the list of all function signatures`):
+fi:
+end:
+
+#given an expression for R involving R and x, it gives a solution for R whoose taylor series agrees with the true solution up to the nth power of x
+getApproxFunSol:=proc(eq,R,x,n,Rinit) local Ret,RetOld,i:
+#Secret symbol that we are hoping will never be equal to Rinit
+RetOld:= NULL:
+Ret:= Rinit:
+while(RetOld<>Ret) do
+  RetOld:=Ret:
+  Ret:= subs(R=Ret,eq):
+  Ret:= add(coeff(Ret,x,i)*x^i,i=0..n):
+od:
+Ret:
+end:
+
+
+#indistinguishable children
+FunEqForDegreeSet:= proc(S,R,x) local i:
+add(R^i*x/(i!),i in S):
+end:
+
+#ordered children
+FunEqForDegreeSetOrdered:= proc(S,R,x) local i:
+add(R^i*x,i in S):
+end:
+
+
+NMoments:=proc(eq,R,x,N) local Foo,i,j,k,eqn,y;
+Foo[1] = R:
+y:=y:
+for i from 1 to N-1 do
+Foo[1$(i+1)] = SymbRationalDiff(R,eq,x,i):
+od:
+for i from 1 to N do
+  eqn := subs(y=1,(D[2$i](R))(x,y) = diff(subs(R = R(x*y,y), eq),y$i));
+  eqn := subs({seq(seq((D[1$i,2$(j-k)](R))(x,1) = Foo[j,k],k=0..j),j=1..i)},eqn);
+  Foo[i,0] := solve(eqn,Foo[i,0]):
+  for j from 1 to N-i do
+    Foo[i,j] := subs(diff(R,x) = Foo[1,2],diff(Foo[i,j-1],x)):
+  od:
+od:
+end:
+
+#f_y fixed point
+#given a degree set S, computes the bivariate generating function up to given degree in x
+FyFixedPoint:=proc(S,x,y,N) local f,eq,fold,i,j:
+eq:=R->add(x^i*coeff(x*(add(subs(x=x*y,R^j),j in S)),x,i),i=1..N):
+fold:=x:
+f:=eq(fold):
+while(f<>fold) do
+  fold:=f:
+  f:=eq(fold):
+od:
+f:
+end:
+
+#Supposing that R is a solution of 0 = eq(R) returns an expression for nth derivative as a rational function of R
+SymbRationalDiff := proc(R,eq,x,n) local ret,i:
+option remember:
+if (n=0) then
+  ret:=R:
+elif(n=1) then
+  ret:=normal(subs(R(x) = R,solve(diff(0 = subs(R=R(x),eq),x), diff(R(x),x)))):
+else:
+  ret:=normal(subs(R(x)= R,subs({seq(diff(R(x),x$i) = SymbRationalDiff(R,eq,x,i),i=1..n-1)},solve(diff(0 = subs(R=R(x),eq),x$n), diff(R(x),x$n))))): 
+fi:
+ReduceRational(ret,eq,R):
+end: 
+
+
+ReduceRational := proc(rat,eq,R) local d,ret:
+d:=degree(eq,R):
+ret:=rat:
+while max(degree(numer(ret),R),degree(denom(ret),R))>=d do
+  ret:=normal(ReducePoly(expand(numer(ret),eq,R),eq,R)/ReducePoly(expand(denom(ret)),eq,R)):
+od:
+ret:
+end:
+
+#Given a polynomial P in R, where R satisfies 0=eq, reduces the degree of P by at least one using the equation
+ReducePoly:= proc(P,eq,R) local r,q,d:
+d:=degree(eq,R):
+q:=quo(P,R^d,R,'r'):
+normal(r+ q*(-eq/coeff(eq,R,d) +R^d)):
+end:
+
+FindMoments:=proc(MultiVarGenFun,x,t,degree,maxX) local xseries,i:
+xseries:=taylor(subs(t=t+1,MultiVarGenFun),x,maxX+1):
+[seq(AveAndMoms(coeff(xseries,x,i),t,degree),i=1..maxX)]:
+end:
+
+#given a MVGF with t's switches back to y, expands in x, and gives the normalized moments
+FindNormalizedMoments:=proc(MultiVarGenFun,x,t,degree,maxX) local xseries,i:
+xseries:=taylor(subs(t=t+1,MultiVarGenFun),x,maxX+1):
+[seq(AlphaSeq(coeff(xseries,x,i),t,degree),i=1..maxX)]:
+end:
+
+cartProd:=proc(ListOfSets) local T,t,S,s:
+option remember:
+if nops(ListOfSets)=1 then
+  RETURN({seq(seq([s],s in t),t in ListOfSets)}):
+fi:
+T:={}:
+for t in ListOfSets[1] do
+  S:=cartProd(ListOfSets[2..nops(ListOfSets)]):
+  T:= T union {seq([t,op(s)],s in S)}:
+od:
+T:
+end:
+
+with(combinat):
+ListAllTrees:=proc(n,S) local part,s,ret,Parts,x:
+option remember:
+if(n=1) then
+RETURN({[]}):
+fi:
+ret:={}:
+for s in S do
+  Parts:=composition(n-1,s):
+  for part in Parts do
+      ret:=ret union (cartProd([seq(ListAllTrees(x,S),x in part)])):
+  od:
+od:
+ret:
+end:
+
+TreeTotalVertices:=proc(Tree) local l:
+option remember:
+if Tree = [] then
+  RETURN(1):
+fi:
+1+add(TreeTotalVertices(l), l in Tree):
+end:
+
+TreeTotalHeight:=proc(Tree) local l:
+if Tree = [] then
+  RETURN(0):
+fi:
+TreeTotalVertices(Tree) -1 +add(TreeTotalHeight(l), l in Tree):
+end:
+
+#gives probability generating function (in the variable y) for a given number of vertices
+fOfyForx:=proc(n,y,S) local allTrees,t:
+allTrees:=[op(ListAllTrees(n,S))]:
+add(y^TreeTotalHeight(t),t in allTrees):
+end:
+
+#will compute terms in the AlphaSequence until after a computation takes more than maxTime
+AlphaSeqForS:= proc(S,maxTime,N) local i,t,ret,y,f:
+y:=y:
+t:=time();
+i:=1;
+ret:=[]:
+while(time()-t < maxTime) do
+  t:=time():
+  f:=fOfyForx(i,y,S):
+  i:=i+1:
+  if(AlphaSeq(f,y,N)<>FAIL) then
+    ret:=[op(ret),AlphaSeq(f,y,N)]:
+  fi:
+od:
+ret:
+end:
+
+#Returns a list with all of the FAIL values removed, shifting later elements in the list up
+RemoveFails:=proc(L) local i,j,myL:
+myL:=L:
+j:=1:
+for i from 1 to nops(L) do
+  if(L[i]<>FAIL) then
+    myL[j] := L[i]:
+    j:=j+1:
+  fi:
+od:
+[seq(myL[i],i=1..j-1)]:
+end:
+

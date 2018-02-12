@@ -1,0 +1,121 @@
+HelpSlow:=proc()
+print(`cartProd(ListOfSets),ListAllTrees(n,S),TreeTotalVertices(Tree),TreeTotalHeight(Tree),fOfyForx(n,y,S),AlphaSeqForS(S,maxTime,N),RemoveFails(L)`):
+print(`to get help on a particular function call SpecificHelpSlow passing in the name of the function`):
+end:
+
+SpecificHelpSlow:= proc(functionName)
+if (functionName=RemoveFails) then
+print(`Removes all of the occurrences of FAIL from a list, shifting terms earlier to fill in the gaps`):
+print(`For example, RemoveFails([FAIL,2,5,2,FAIL,FAIL,10,FAIL]) = [2,5,2,10]`);
+
+elif (functionName=cartProd) then
+print(`given a ListOfSets, outputs the set of lists which has all the lists that have the nth element drawn from the nth set in the given list`):
+print(`For example, cartProd([{0,1},{0,1},{0,1},{0,1}]) returns the binary representations of the numbers 0-15 {[0,0,0,0],[0,0,0,1], ... , [1,1,1,1]}`):
+
+elif (functionName=ListAllTrees) then
+print(`outputs all (ordered) trees on n vertices that have given set S of allowed degrees`):
+print(`For example, ListAllTrees(5,{0,2}) outputs {[[], [[], []]], [[[], []], []]}, which represents the two complete binary trees on 5 vertices, the first where the right child of the root is size three, the second where the left child of the root is size three`);
+
+elif (functionName=TreeTotalVertices) then
+print(`given a tree, outputs the number of vertices that it has`):
+print(`For example, TreeTotalVertices([[], [[], []]]) = 5, since the input is an encoding of a tree on five vertices`):
+
+elif (functionName=TreeTotalHeight) then
+print(`given a tree, outputs the sum over all vertices of that vertex's depth`):
+print(`For example, TreeTotalVertices([[], [[], []]]) = 6, since the input is an encoding of a tree with two vertices at depth 1 and two vertices at depth 2`):
+
+elif (functionName=fOfyForx) then
+print(`gives probability generating function (in the variable y) for a given number of vertices. Works in a slow way by enumerating all trees and counting them up by height`):
+print(`For example, fOfyForx(7,y,{0,2}) = y^10+4 y^12, since there are 5 complete binary trees on 7 vertices, one of which has 2 vertices at depth 1 and 4 at depth 2 giving total height 10, and four which have two at depth 1, two at depth 2, and 2 at depth 3, giving total height 12`):
+print(`in order to recover the multivarable generating function that we care about, you would need to call this for all n up to the maximum degree in x and multiply by x^n for each.`):
+
+elif (functionName=AlphaSeqForS) then
+print(`gives the first N Alpha values for the total height statistic for each possible number of vertices`):
+print(`will keep trying higher and higher numbers of vertices until the time to compute that number of vertices gets over the given threshold`):
+print(`This does not guarentee that the computation will take less than the given time, but just that if an iteration of the loop ever takes more than the second argument many seconds, then that will be the last iteration
+print(`for Example, AlphaSeqForS({0, 2}, .05, 2) gives [[58/5, 16/25], [130/7, 152/49], [562/21, 3944/441], [1190/33, 21776/1089], [19898/429, 7049888/184041], [41226/715, 33785704/511225]], which are the average and normalized variance for the first six numbers of vertices that actually have trees of those sizes.`):
+print(`You may get a greater or fewer number of terms based on if your computer is faster or slower respectively, for this example, it stopped because the last case took mor than 1/20th of a second`):
+
+else
+print(`unrecognized function name, please run HelpSlow() to see the list of all function signatures`):
+fi:
+end:
+
+cartProd:=proc(ListOfSets) local T,t,S,s:
+option remember:
+if nops(ListOfSets)=1 then
+  RETURN({seq(seq([s],s in t),t in ListOfSets)}):
+fi:
+T:={}:
+for t in ListOfSets[1] do
+  S:=cartProd(ListOfSets[2..nops(ListOfSets)]):
+  T:= T union {seq([t,op(s)],s in S)}:
+od:
+T:
+end:
+
+
+ListAllTrees:=proc(n,S) local part,s,ret,Parts:
+option remember:
+if(n=1) then
+RETURN({[]}):
+fi:
+ret:={}:
+for s in S do
+  Parts:=combinat[composition](n-1,s):
+  for part in Parts do
+      ret:=ret union (cartProd([seq(ListAllTrees(x,S),x in part)])):
+  od:
+od:
+ret:
+end:
+
+TreeTotalVertices:=proc(Tree) local l:
+option remember:
+if Tree = [] then
+  RETURN(1):
+fi:
+1+add(TreeTotalVertices(l), l in Tree):
+end:
+
+TreeTotalHeight:=proc(Tree)
+if Tree = [] then
+  RETURN(0):
+fi:
+TreeTotalVertices(Tree) -1 +add(TreeTotalHeight(l), l in Tree):
+end:
+
+#gives probability generating function (in the variable y) for a given number of vertices
+fOfyForx:=proc(n,y,S) local allTrees,t:
+allTrees:=[op(ListAllTrees(n,S))]:
+add(y^TreeTotalHeight(t),t in allTrees):
+end:
+
+#will compute terms in the AlphaSequence until after a computation takes more than maxTime
+AlphaSeqForS:= proc(S,maxTime,N) local i,t,ret,y,f:
+t:=time();
+i:=1;
+ret:=[]:
+while(time()-t < maxTime) do
+  t:=time():
+  f:=fOfyForx(i,y,S):
+  i:=i+1:
+  if(AlphaSeq(f,y,N)<>FAIL) then
+    ret:=[op(ret),AlphaSeq(f,y,N)]:
+  fi:
+od:
+ret:
+end:
+
+#Returns a list with all of the FAIL values removed, shifting later elements in the list up
+RemoveFails:=proc(L) local i,j,ret,myL:
+myL:=L:
+j:=1:
+for i from 1 to nops(L) do
+  if(L[i]<>FAIL) then
+    myL[j] := L[i]:
+    j:=j+1:
+  fi:
+od:
+[seq(myL[i],i=1..j-1)]:
+end:

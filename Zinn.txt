@@ -1,0 +1,42 @@
+
+
+#EmpAsy(L,n0,n): Empirical asympototics of a sequence that converges to a constant in terms of 1/n.
+#Inputs a list of numbers L of size k, say, and  a positive integer n0, where the L=[f(n0),..., f(n0+k-1)]
+#returns an expression of the form a0+a1/n+..a[k-1]/n^(k-1), let's call it g(n) such that 
+#f(n)=g(n) for n=n0..n0+k01. Try
+#EmpAsy([seq(4+5/i+7/i^2,i=1000..1002)],1000,n);
+EmpAsy:=proc(L,n0,n) local k,var,eq,a,i,g:
+k:=nops(L):
+var:={seq(a[i],i=0..k-1)}:
+g:=add(a[i]/n^i,i=0..k-1):
+eq:={seq(subs(n=n0+i-1,g)-L[i],i=1..k)}:
+var:=solve(eq,var):
+subs(var,g):
+end:
+
+###Zinn
+sn:=proc(resh,n1):
+-1/log(op(n1+1,resh)*op(n1-1,resh)/op(n1,resh)^2):
+end:
+ 
+#Zinn(resh): Zinn-Justin's method to estimate
+#the C,mu, and theta such that
+#resh[i] is appx. Const*mu^i*i^theta
+#For example, try:
+#Zinn([seq(5*i*2^i,i=1..30)]);
+Zinn:=proc(resh)
+local s1,s2,theta,mu,n1,i:
+if nops({seq(sign(resh[i]),i=1..nops(resh))})<>1 then
+ RETURN(FAIL):
+fi:
+
+n1:=nops(resh)-1:
+s1:=sn(resh,n1):
+s2:=sn(resh,n1-1):
+theta:=evalf(2*(s1+s2)/(s1-s2)^2):
+mu:=evalf(sqrt(op(n1+1,resh)/op(n1-1,resh))*exp(-(s1+s2)/((s1-s2)*s1))):
+[theta,mu]:
+end:
+###
+
+

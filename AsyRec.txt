@@ -1,0 +1,3348 @@
+######################################################################
+## AsyRec:                                                           #
+## Save this file as  AsyRec:  To use it, stay in the                #
+## same directory, get into Maple (by typing: maple <Enter> )        #
+## and then type:  read AsyRec: <Enter>                              #
+## Then follow the instructions given there                          #
+##                                                                   #
+## Written by Doron Zeilberger, Rutgers University ,                 #
+##  zeilberg@math.rutgers.edu.                                       # 
+######################################################################
+
+
+with(SolveTools):
+with(numtheory):
+print(`First Posted: April 2, 2008: tested for Maple 10 and 11 `):
+print(`(Note: For some complicated inputs, Maple 11 fails while Maple 10 succeeds) `):
+print(`Version of April 26, 2016 (to fix a bug that happens in very pathological examples)  `):
+print(`and to add procedures AsyGen and AsyGenC `):
+print(`previous Version: July 21, 2009 (to slightly extend the scope)  `):
+
+print():
+print(`This is AsyRec, A Maple package`):
+print(`accompanying Doron Zeilberger's  article: `):
+print(``):
+print(`It finds the asymptotics of solutions of (homog.) linear recurrence`):
+print(`equations with polynomial coefficients, using the Birkhoff-Trjitzinsky`):
+print(` method . `):
+print(`as it is described in Jet Wimp and Doron Zeilberger's article`):
+print(`"Resurrecting the asymptotics of Linear Recurrences"`):
+print(`J. Math. Anal. Appl. v. 111 (1985), pp. 162-176. `):
+print():
+print(`This Maple package is accompanied by a short explanatory article entitled`):
+print(`"AsyRec: A Maple package for Computing Asymptotics of Solutions of Linear Recurrence`):
+print(`Equations with Polynomial Coefficients",`):
+print(`exclusively published in the famous Electronic Math Journal: The Personal Journal of`):
+print(`Ekhad and Zeilberger, http://www.math.rutgers.edu/~zeilberg/pj.html `):
+print(``):
+print(`The most current version of this package is available on WWW at:`):
+print(` http://www.math.rutgers.edu/~zeilberg/tokhniot/AsyRec .`):
+print(``):
+print(`Please report all bugs to: zeilberg at math dot rutgers dot edu .`):
+print():
+print(`For general help, and a list of the MAIN functions,`):
+print(` type "ezra();". For specific help type "ezra(procedure_name);" `):
+print(`For a list of the supporting functions type: ezra1();`):
+print():
+ 
+
+ezra1:=proc()
+if args=NULL then
+
+print(` `):
+print(`The supporting procedures are: Asy1, Asy1special `):
+print(` Atom, CODV, CODV1, Finda, FindExpP, FindExpP1, FindExpP1g`):
+print(` FindKk, Ksect,  `):
+print(` NakedStirling, NewOpe, Nor, OneStepG, OpeBin,`):
+print(`OpePer, OpePerG,OpePerN `):
+print(` SeqFromRec `):
+print():
+
+else
+ ezra(args):
+fi:
+end:
+ 
+ezra:=proc()
+if args=NULL then
+
+print(` AsyRec: A Maple package for finding the asymptotics of`):
+print(` solutions of (homog.) linear recurrence equations with polynomial`):
+print(` coefficents using (a variant) of Birkhoff-Trjitzinsky method `):
+print():
+print(`For help with a specific procedure, type "ezra(procedure_name);"`):
+print(`Contains procedures:  `):
+print(`Asy, AsyBin, AsyC, AsyF, AsyFC, AsyGen, AsyGenC, AsyPerm, SipurBin, SipurPerm `):
+print():
+
+
+elif nargs=1 and args[1]=Asy then
+print(`Asy(ope,n,N,M): the asymptotic expansion of solutions `):
+print(`to ope(n,N)f(n)=0,where ope(n,N) is  a recurrence operator`):
+print(`up to the M's term`):
+print(`For example, try:`):
+print(`Asy((n+2)^3*N^2-(34*n^3+153*n^2+231*n+117)*N+(n+1)^3,n,N,3);`):
+print(`Asy((n+2)^2*N^2-(7*n^2+21*n+16)*N-8*(n+1)^2,n,N,3);`):
+print(`Asy(N^2-N-(n+1),n,N,3);`):
+print(`Asy(N^3-N^2-(n+2)*N-(n+2)*(n+1),n,N,3);`):
+
+elif nargs=1 and args[1]=Asy1 then
+print(`Asy1(ope,n,N,M): the asymptotic expansion of solutions `):
+print(`to ope(n,N)f(n)=0,where ope(n,N) is  a recurrence operator`):
+print(`up to the M's term, followed by the [K,k]`):
+print(`such that the asymptotics is for a(Kn)/n!^k:`):
+print(`For example, try:`):
+print(`Asy1((n+2)^3*N^2-(34*n^3+153*n^2+231*n+117)*N+(n+1)^3,n,N,3);`):
+print(`Asy1((n+2)^2*N^2-(7*n^2+21*n+16)*N-8*(n+1)^2,n,N,3);`):
+print(`Asy1(N^2-N-(n+1),n,N,3);`):
+print(`Asy1(N^3-N^2-(n+2)*N-(n+2)*(n+1),n,N,3);`):
+
+elif nargs=1 and args[1]=Asy1special then
+print(`Asy1special(ope,n,N,K,x): the asymptotic expansion of solutions `):
+print(`to ope(n,N)f(n)=0,given as a list`):
+print(`[pu,lu,expansion,r] where it is`):
+print(`exp(pu)*lu^n*expansion(x), where x=1/n^(1/r), and r is`):
+print(`a positive integer. It also returns [K,k] (see Asy1)`):
+print(`where ope(n,N) is  a recurrence operator`):
+print(`up to the K's term`):
+print(`For example, try: `):
+print(`Asy1special((n+2)^2*N^2-(7*n^2+21*n+16)*N-8*(n+1)^2,n,N,3,x);`):
+print(`Asy1special(N^2-N-(n+1),n,N,3,x);`):
+
+elif nargs=1 and args[1]=AsyBin then
+print(`AsyBin(F,n,k,M,L): the asymptotics in n, up to order M,`):
+print(`of a binomial coefficient`):
+print(`sum Sum(F(n,k),k=0..n) (assuming F is supported between 0 and n`):
+print(`where F is a hypergeometric term in n and k, `):
+print(`and L is the number of terms in the sequence`):
+print(`for estimating the constant in front`):
+print(`For example, try:`):
+print(`AsyBin(binomial(n,k)*binomial(n+k,k),n,k,5,1000);`):
+
+elif nargs=1 and args[1]=AsyC then
+print(`AsyC(ope,n,N,M,Ini,K): the asymptotic expansion of solutions `):
+print(`to ope(n,N)f(n)=0, with the given initial conditions`):
+print(`Starting at n=1 (NOT at n=0)`):
+print(`where ope(n,N) is  a recurrence operator`):
+print(`up to the M's term`):
+print(`and complete with an empirically derived constant in front`):
+print(`using K terms `):
+print(`For example, try:`):
+print(`AsyC((n+2)^3*N^2-(34*n^3+153*n^2+231*n+117)*N+(n+1)^3,n,N,5,[5,73],1000);`):
+print(`AsyC((n+2)^2*N^2-(7*n^2+21*n+16)*N-8*(n+1)^2,n,N,5,[2,10],1000);`):
+print(`AsyC(N^2-N-(n+1),n,N,5,[1,2],1000);`):
+
+elif nargs=1 and args[1]=AsyF then
+print(`AsyF(ope,n,N,M): the asymptotic expansion of solutions `):
+print(`to ope(n,N)f(n)=0,where ope(n,N) is  a recurrence operator`):
+print(`up to the M's term, in terms of factorials`):
+print(`For example, try:`):
+print(`AsyF((n+2)^3*N^2-(34*n^3+153*n^2+231*n+117)*N+(n+1)^3,n,N,3);`):
+print(`AsyF((n+2)^2*N^2-(7*n^2+21*n+16)*N-8*(n+1)^2,n,N,3);`):
+print(`AsyF(N^2-N-(n+1),n,N,3);`):
+print(`AsyF(N^3-N^2-(n+2)*N-(n+2)*(n+1),n,N,3);`):
+
+elif nargs=1 and args[1]=AsyFC then
+print(`AsyFC(ope,n,N,M,Ini,K): the asymptotic expansion of solutions `):
+print(`to ope(n,N)f(n)=0, with the given initial conditions`):
+print(`where ope(n,N) is  a recurrence operator`):
+print(`up to the M's term, in terms of the factorial function`):
+print(`and complete with an empirically derived constant in front`):
+print(`using K terms `):
+print(`For example, try:`):
+print(`AsyFC((n+2)^3*N^2-(34*n^3+153*n^2+231*n+117)*N+(n+1)^3,n,N,5,[5,73],1000);`):
+print(`AsyFC((n+2)^2*N^2-(7*n^2+21*n+16)*N-8*(n+1)^2,n,N,5,[2,10],1000);`):
+print(`AsyFC(N^2-N-(n+1),n,N,5,[1,2],1000);`):
+
+elif nargs=1 and args[1]=AsyPerm then
+print(`AsyPerm(n,r,M,L): the asymptotics for the number of permutations`):
+print(`whose r-th power is the identity permutation. `):
+print(`M is the desired order, and L is the number of terms in the`):
+print(`sequence used to estimate the constant`):
+print(`For example, try AsyPerm(n,2,5,1000);`):
+
+elif nops([args])=1 and op(1,[args])=AsyGen then
+print(`AsyGen(ope,n,N,mu,M): inputs a linear recurrence operator with polynomial coefficients, `):
+print(`in the variable n, and where the forward shift operator is denoted by N , i.e. Nf(n):=f(n+1)`):
+print(`and one of its characteristic roots, mu, and  a positive integer M. finds the asymptotic series`):
+print(`annilihating the recurrence, to order M `):
+print(`regardless of initial conditions`):
+print(`Try:`):
+print(`AsyGen(n^2*(N-1)*(N-2)*(N-3)+ n*(N^2+5*N+1)+ (N^2+7*N+1),n,N,3,4);`):
+
+elif nops([args])=1 and op(1,[args])=AsyGenC then
+print(`AsyGenC(ope,n,N,mu,M,INI,K): inputs a linear recurrence operator with polynomial coefficients, `):
+print(`in the variable n, and where the forward shift operator is denoted by N , i.e. Nf(n):=f(n+1)`):
+print(`and one of its characteristic roots, mu, and  a positive integer M, as well as a list`):
+print(`of numbers, INI, whose length is the order of the recurrence (i.e., degree(ope,N)), `):
+print(`It also inputs a large integer K telling us how far to go in order to estimate/guess the constant in front`):
+print(`It outputs the asymptotic series, INCLUDING THE CONSTANT IN FRONT`):
+print(`annilihating the recurrence, to order M, and satisfying the given initial conditions `):
+print(`It returns FAIL if it is the wrong mu`).
+print(`Everything is rigorous except for the constant, that is estimated. `):
+print(`Try:`):
+print(`AsyGenC(n^2*(N-1)*(N-2)*(N-3)+ n*(N^2+5*N+1)+ (N^2+7*N+1),n,N,3,4,[1,1,1],1000);`):
+
+
+
+elif nops([args])=1 and op(1,[args])=CharRoots then
+print(`CharRoots(ope,n,N): inputs a linear recurrence operator with polynomial coefficients, ope`):
+print(` in the variable n, and where the forward shift operator is denoted by N , i.e. Nf(n):=f(n+1) `):
+print(` and outputs the ordered list`):
+print(`of its characteristic roots. If it has complex roots, it returns FAIL. Try:a`):
+print(`CharRoots((n+4)*N^2-n*N-1,n,N);`):
+print(``):
+
+
+elif nargs=1 and args[1]=Atom then
+print(`Atom(s,r,i,x,K): Expanding (n+i)^(s/r)-n^(s/r) in terms of`):
+print(`x=n^(-1/r) up to K terms`):
+print(`For example try:`):
+print(`Atom(2,3,2,x,3);`):
+
+elif nargs=1 and args[1]=CODV then
+print(`CODV(ope,n,N,k,K): Given a linear recurrence operator ope(n,N)`):
+print(`annihilating a[n], say, outputs the operator`):
+print(`annihilating b[n]:=a[n*K]/n!^k . `):
+print(`For example, try: CODV(N-(n+1),n,N,1,1):`):
+
+elif nargs=1 and args[1]=CODV1 then
+print(`CODV1(ope,n,N,k): Given a linear recurrence operator ope(n,N)`):
+print(`annihilating a[n], say, outputs the operator`):
+print(`annihilating b[n]:=a[n]/n!^k`):
+print(`For example, try: CODV1(N-(n+1),n,N,1):`):
+
+
+elif nargs=1 and args[1]=Finda then
+print(`Finda(ope,N,x,r): finds the first power x^a in the`):
+print(`asymptotic solution of ope(N,n)f(n)=0, where x=1/n^(1/r)`):
+print(`For example, try:`):
+print(`Finda((1+x)-(1+3*x)*N,N,x,1);`):
+
+
+elif nargs=1 and args[1]=FindExpP then
+print(`FindExpP1(ope,n,N): finds the exponential part of the asymptotics`):
+print(`for the solutions of ope(n,N)a(n)=0 if it is normalized`):
+print(`such that the leading asymp. is 1^n`):
+print(`for example, try:`):
+print(`FindExpP((n+1)*N^2-2*(n+5)*N+n+3,n,N);`):
+
+elif nargs=1 and args[1]=FindExpP1 then
+print(`FindExpP1(ope,n,N,r,x): finds the exponential part of the asymptotics`):
+print(`in terms of x=n^(1/r)`):
+print(`for the solutions of ope(n,N)a(n)=0 if it is of type r.`):
+print(`for example, try:`):
+print(`FindExpP1((n+1)*N^2-2*(n+5)*N+n+3,n,N,2,x);`):
+
+elif nargs=1 and args[1]=FindExpP1g then
+print(`FindExpP1g(ope,n,N,r,x,ds): finds the exponential part of the`):
+print(` asymptotics`):
+print(`in terms of x=n^(1/r) as a poly. of degree ds in x`):
+print(`for the solutions of ope(n,N)a(n)=0 if it is of type r`):
+print(`For example, try:`):
+print(`FindExpP1g((n+1)*N^2-2*(n+5)*N+n+3,n,N,2,x,1);`):
+
+elif nargs=1 and args[1]=FindKk then
+print(`FindKk(ope,n,N): Given a linear recurrence operator with polynomial`):
+print(`coefficients, ope(n,N), finds the integers K and k such`):
+print(`that if a(n) is a solution of ope(n,N)a(n)=0, then`):
+print(`b(n):=a(K*n)/n!^k is annihilated by a standard operator`):
+print(`the output is the pair [k,K] and the transformed operator`):
+print(`For exanple, try: FindKk(N^2-n,n,N);`):
+
+
+elif nargs=1 and args[1]=Ksect then
+print(`Ksect(ope,n,N,k,r): Given a linear recurrence operator ope(n,N)`):
+print(`annihilating a sequence a[n], and pos. integer k, and`):
+print(`non-neg. integer r, outputs the one, of the same`):
+print(`order, that annihilates  a[k*n+r]`):
+print(`For example try: Ksect(N^2-N-(n+1),n,N,2,0);`):
+
+elif nargs=1 and args[1]=NakedStirling then 
+print(`NakedStirling(n,K): the asymptotic expansion of`):
+print(`n!/((n/e)^n*sqrt(2*Pi*n). For example, try:`):
+print(`NakedStirling(n,5);`):
+
+
+elif nargs=1 and args[1]=NewOpe then
+print(`NewOpe(ope,n,N,K,x): the exponential part + the transformed operator`):
+print(`(up to degree K asymp. in the coefficients), in terms of x=1/n^(1/r)`):
+print(`For example, try:`):
+print(`NewOpe((n+1)*N^2-2*(n+5)*N+n+3,n,N,4,x);`):
+
+elif nargs=1 and args[1]=Nor then
+print(`Nor(ope,n,N): the Normalizer of the linear recurrence`):
+print(`operator with polynomial coefficients ope(n,N)`):
+print(`followed by its exponential growth constant`):
+print(`For example, try:`):
+print(`Nor(N^2-3*N+2,n,N);`):
+
+elif nargs=1 and args[1]=OneStepG then
+print(`OneStepG(ope,N,x,r,Cu): Given the asymptotic expansion of`):
+print(`a solution to ope(n,N) expressed in terms of x=1/n^(1/r)`):
+print(`finds the next one`):
+print(`finds one more term`):
+print(`OneStepG((1+x)-(1+3*x)*N,N,x,1,x^2);`):
+
+elif nargs=1 and args[1]=OpeBin then
+print(`OpeBin(n,N,r): the operator for the sum of the r-th power of the`):
+print(`binomial coefficients followed by their initial conditions`):
+print(`For example, try:`):
+print(`OpeBin(n,N,3);`):
+
+elif nargs=1 and args[1]=OpePer then
+print(`OpePer(N,n,r): the linear recurrenec operator that`):
+print(`annihilates a(n,r):=The number of permutations`):
+print(`with cycles of length<=r. For example, try:`):
+print(`OpePer(N,n,2);`):
+
+elif nargs=1 and args[1]=OpePerG then
+print(`OpePerG(N,n,S): the linear recurrenec operator that`):
+print(`annihilates a(n,S):=The number of permutations`):
+print(`with cycles of lengths in S. It also outputs`):
+print(`the initial conditions `):
+print(`For example, try:`):
+print(`OpePerG(N,n,{1,2});`):
+
+elif nargs=1 and args[1]=OpePerN then
+print(`OpePerN(N,n,r): the normalized linear recurrenec operator that`):
+print(`annihilates a(n,r):=The number of permutations`):
+print(`with cycles of length<=r. For example, try:`):
+print(`OpePerN(N,n,2);`):
+
+elif nargs=1 and args[1]=SeqFromRec then
+print(`SeqFromRec(ope,n,N,Ini,K): Given the first L-1`):
+print(`terms of the sequence Ini=[f(1), ..., f(L-1)]`):
+print(`satisfied by the recurrence ope(n,N)f(n)=0`):
+print(`extends it to the first K values`):
+print(`For example, try:`):
+print(`SeqFromRec(N-2,n,N,[1],10);`):
+print(`SeqFromRec((n+2)^3*N^2-(34*n^3+153*n^2+231*n+117)*N+(n+1)^3,n,N,[5,73],20);`):
+print(`SeqFromRec((n+2)^2*N^2-(7*n^2+21*n+16)*N-8*(n+1)^2,n,N,[2,10],20);`):
+print(`SeqFromRec(N^2-N-(n+1),n,N,[1,2],20);`):
+
+elif nargs=1 and args[1]=SipurBin then
+print(`SipurBin(R,n,M,L): The story for sums of powers of binomial`):
+print(`coefficients. For example, try:`):
+print(`SipurBin(4,n,5,1000);`):
+
+
+elif nargs=1 and args[1]=SipurPerm then
+print(`SipurPerm(R,n,M,L): The story for the asymptotics for`):
+print(`the number of premutations pi  of [1,n] such that pi^r=Identity`):
+print(`for r from 2 to R (r=2 is involutions).`):
+print(`M is the desired order and L is the number of terms in the`):
+print(`squence for estimating the constant`):
+print(`(for some reason, it only works for R<=6).`):
+print(`For example, try:`):
+print(`SipurPerm(6,n,5,1000);`):
+
+else
+
+print(`There is no ezra for`, args):
+
+fi:
+
+
+end:
+
+
+
+
+#MonoN(ope,n,N,k): Given a linear recurrence operator with
+#poly coeffs. ope(n,N), and a pos. integer k, outputs the expression of
+#N^k as a linear combination of 1, N, ..., N^(ORDER-1)
+#For example, try
+#MonoN(N-n-1,n,N,3);
+MonoN:=proc(ope,n,N,k) local ORDER,coe0,i,lu1,lu2:
+ORDER:=degree(ope,N):
+
+if k<ORDER then
+ RETURN(N^k):
+fi:
+
+if k=ORDER then
+coe0:=coeff(ope,N,ORDER):
+RETURN(add(normal(-coeff(ope,N,i)/coe0)*N^i,i=0..ORDER-1)):
+fi:
+
+lu1:=expand(MonoN(ope,n,N,k-1)):
+lu2:=expand(MonoN(ope,n,N,ORDER)):
+lu1:=expand(subs(n=n+1,lu1)*N):
+lu1:=subs(N^ORDER=lu2,lu1):
+add(normal(coeff(lu1,N,i))*N^i,i=0..ORDER-1):
+
+end:
+
+
+#Ksect(ope,n,N,k,r): Given a linear recurrence operator ope(n,N)
+#annihilating a sequence a[n], and pos. integer k, and
+#non-neg. integer r, outputs the one, of the same
+#order, that annihilates  a[k*n+r]
+#For example try: Ksect(N^2-N-(n+1),n,N,2,0);
+Ksect:=proc(ope,n,N,K,r) local ORDER,eq,var,lu,mu,c,Ope,var1,i,vu,v:
+ 
+ORDER:=degree(ope,N):
+
+for i from 0 to ORDER do
+ lu[i]:=MonoN(ope,n,N,r+K*i):
+ lu[i]:=subs(n=n*K,lu[i]):
+od:
+
+Ope:=add(c[i]*N^i,i=0..ORDER):
+
+mu:=expand(add(c[i]*lu[i],i=0..ORDER)):
+
+eq:={seq(coeff(mu,N,i),i=0..ORDER)}:
+var:={seq(c[i],i=1..ORDER)}:
+
+var1:=solve(eq,var):
+
+
+if var1=NULL then
+ RETURN(FAIL):
+fi:
+
+
+
+vu:={}:
+
+for i from 1 to nops(var1) do
+ if op(1,var1[i])=op(2,var1[i]) then
+    vu:=vu union {op(1,var1[i])}:
+ fi:
+od:
+
+Ope:=subs(var1,Ope):
+
+for v in vu do
+Ope:=subs(v=0,Ope):
+od:
+
+
+
+Ope:=subs(c[0]=1,numer(normal(Ope))):
+
+
+
+end:
+
+ 
+#SeqFromRec(ope,n,N,Ini,K): Given the first L-1
+#terms of the sequence Ini=[f(1), ..., f(L-1)]
+#satisfied by the recurrence ope(n,N)f(n)=0
+#extends it to the first K values
+#For example, try:
+#SeqFromRec(N-2,n,N,[1],10);
+SeqFromRec:=proc(ope,n,N,Ini,K)
+local ope1,gu,L,n1,j1:
+ope1:=Yafe(ope,N)[2]:
+L:=degree(ope1,N):
+if nops(Ini)<>L then
+ ERROR(`Ini should be of length`, L):
+fi:
+
+ope1:=expand(subs(n=n-L,ope1)/N^L):
+
+gu:=Ini:
+
+for n1 from nops(Ini)+1 to K do
+gu:=[op(gu), -add(gu[nops(gu)+1-j1]*subs(n=n1,coeff(ope1,N,-j1)),
+j1=1..L)]:
+od:
+
+gu:
+
+end:
+ 
+
+
+
+#HafelOper(ope,n,N,L): applies the operator ope(n,N) to
+#the sequence L, for example, try:
+#HafelOper(N-(n+1),n,N,[1,2,6,24,120]);
+HafelOper:=proc(ope,n,N,L) local i,n1:
+[seq(add(subs(n=n1,coeff(ope,N,i))*L[n1+i],i=0..degree(ope,N)),
+n1=1..nops(L)-degree(ope,N))]:
+end:
+
+
+#TestKsect(ope,n,N,K,r,M,Ini): tests procedure Ksect
+#with initial conditions Ini up to M terms
+TestKsect:=proc(ope,n,N,K,r,M,Ini)  local gu,Ope,n1:
+gu:=SeqFromRec(ope,n,N,Ini,M*K+r):
+Ope:=Ksect(ope,n,N,K,r):
+gu:=[seq(gu[K*n1+r],n1=1..M-1)]:
+evalb({op(HafelOper(Ope,n,N,gu))}={0}):
+end:
+
+rf:=proc(a,n) local i:mul(a+i,i=0..n-1):end:
+
+#CODV1(ope,n,N,k): Given a linear recurrence operator ope(n,N)
+#annihilating a[n], say, outputs the operator
+#annihilating b[n]:=a[n]/n!^k
+#For example, try: CODV1(N-(n+1),n,N,1):
+CODV1:=proc(ope,n,N,k) local i:
+add(coeff(ope,N,i)*(rf(n+1,i))^k*N^i,i=0..degree(ope,N)):
+end:
+
+
+#CODV(ope,n,N,k,K): Given a linear recurrence operator ope(n,N)
+#annihilating a[n], say, outputs the operator
+#annihilating b[n]:=a[n*K]/n!^k
+#For example, try: CODV(N-(n+1),n,N,1,1):
+CODV:=proc(ope,n,N,k,K) local Ope:
+Ope:=Ksect(ope,n,N,K,0):
+CODV1(Ope,n,N,k):
+end:
+
+
+
+#FindKk(ope,n,N): Given a linear recurrence operator with polynomial
+#coefficients, ope(n,N), finds the integers K and k such
+#that if a(n) is a solution of ope(n,N)a(n)=0, then
+#b(n):=a(K*n)/n!^k is annihilated by a standard operator
+#the output is the pair [k,K] and the transformed operator
+#For exanple, try: FindKk(N^2-n,n,N);
+FindKk:=proc(ope,n,N) local ope1,Ld,deg,sp,yakhas,K,k,pu:
+
+
+pu:=Aope1(ope,n,N):
+
+if {solve(pu,N)}<>{} and {solve(pu,N)}<>{0} then
+ RETURN([1,0],ope):
+fi:
+
+ope1:=expand(ope):
+Ld:=ldegree(ope,N):
+ope1:=expand(subs(n=n-Ld,ope1)/N^Ld ):
+
+deg:=degree(ope,N):
+
+sp:=degree(coeff(ope,N,0),n)-degree(coeff(ope,N,deg),n):
+
+yakhas:=sp/deg:
+
+k:=numer(yakhas):
+K:=denom(yakhas):
+[K,k],CODV(ope,n,N,k,K):
+end:
+
+
+#Aope1(ope,n,N): the asymptotics of the difference operator with poly. coeffs. ope(n,N)
+Aope1:=proc(ope,n,N)
+local gu:
+gu:=expand(numer(normal(ope))):
+gu:=coeff(gu,n,degree(gu,n)):
+gu:=expand(gu/coeff(gu,N,degree(gu,N))):
+factor(gu):
+end:
+
+C3:=proc(a,b,c) option remember:
+
+if [a,b,c]=[0,0,0] then
+  RETURN(1):
+fi:
+if a<0 or b<0 or c<0 then
+   RETURN(0):
+fi:
+C3(a-1,b,c)+C3(a,b-1,c)+C3(a,b,c-1)-4*C3(a-1,b-1,c-1):
+end:
+
+#Aluf1(pit): is it positive dominant?
+Aluf1:=proc(pit)
+local aluf,shi,i,makom:
+
+
+shi:=evalf(abs(pit[1])):
+aluf:={evalf(evalc(pit[1]))}:
+makom:={1}:
+
+for i from 2 to nops(pit) do
+
+ if evalf(abs(pit[i]))>evalf(shi) then
+   shi:=abs(evalf(evalc(pit[i]))):
+  aluf:={pit[i]}:
+  makom:={i}:
+ elif evalf(abs(pit[i]))=shi then
+   aluf:=aluf union {evalf(evalc(pit[i]))}:
+   makom:=makom union {i}:
+ fi:
+
+od:
+
+aluf,shi,makom:
+
+end:
+
+
+
+#OneStepAS1(ope1,n,N,alpha,f,S1): Given the partial asymptotic
+#expansion of solutions of ope1(n,N) with exponent alpha
+#extends it by one term
+OneStepAS1:=proc(ope1,n,N,alpha,f,S1)
+local x,f1,L,F,A,mu,i,A1:
+
+f1:=subs(n=1/x,f):
+L:=degree(f1,x):
+F:=f1+A*x^(L+S1):
+mu:=add(
+subs(n=1/x,coeff(ope1,N,i))*(1+i*x)^alpha*subs(x=x/(1+i*x),F)
+,i=ldegree(ope1,N)..degree(ope1,N)):
+mu:=normal(mu):
+mu:=taylor(mu,x=0,L+11):
+mu:=simplify(mu):
+for i from L+1 to L+9 while coeff(mu,x,i)=0 do od:
+if i=L+10 then
+ RETURN(FAIL):
+fi:
+mu:=coeff(mu,x,i):
+A1:=subs(Linear({mu},{A}),A):
+if A1=0 then
+  RETURN(FAIL):
+fi:
+
+
+subs({x=1/n,A=A1},F):
+
+end:
+
+
+#OneStepA(ope1,n,N,alpha,f): Given the partial asymptotic
+#expansion of solutions of ope1(n,N) with exponent alpha
+#extends it by one term
+OneStepA:=proc(ope1,n,N,alpha,f)
+local S1,pu:
+for S1 from 1 to 5 while OneStepAS1(ope1,n,N,alpha,f,S1)=FAIL do od:
+pu:=OneStepAS1(ope1,n,N,alpha,f,S1):
+if pu=FAIL then
+ RETURN(f):
+else
+ RETURN(pu):
+fi:
+end:
+
+
+
+Yafe:=proc(ope,N) local i,ope1,coe1,L: 
+if ope=0 then
+ RETURN(1,0):
+fi:
+ope1:=expand(ope):
+L:=degree(ope1,N):
+coe1:=coeff(ope1,N,L):
+ope1:=normal(ope1/coe1):
+ope1:=normal(ope1):
+ope1:=
+convert(
+[seq(factor(coeff(ope1,N,i))*N^i,i=ldegree(ope1,N)..degree(ope1,N))],`+`):
+factor(coe1),ope1:
+end:
+
+
+
+
+
+
+#Nor(ope,n,N): the Normalizer of the linear recurrence
+#operator with polynomial coefficients ope(n,N)
+#followed by its exponential growth constant
+#For example, try:
+#Nor(N^2-3*N+2,n,N);
+Nor:=proc(ope,n,N)
+local gu,pit,lu,makom,ope1:
+
+gu:=Aope1(ope,n,N):
+if degree(gu,N)=0 then
+   print(`Not of exponential growth, case not implemented`):
+   RETURN(FAIL):
+fi:
+
+if not type(expand(normal(ope/gu)),`+`) then
+ pit:=[solve(gu,N)]:
+ makom:=Aluf1(pit)[3]:
+
+lu:=pit[makom[1]]:
+ope1:=Yafe(subs(N=lu*N,ope),N)[2]:
+RETURN(ope1,lu):
+
+fi:
+
+pit:=[solve(gu,N)]:
+makom:=Aluf1(pit)[3]:
+
+if nops(makom)<>1 then
+lu:=evalf(evalc(pit[makom[1]])):
+ if coeff(lu,I,1)>(1/10)^(Digits-2) then
+ print(`Dominant roots are complex`):
+ RETURN(FAIL):
+  elif pit[makom[1]]+pit[makom[2]]=0 then
+   print(`Dominant real roots are negatives of each other`):
+   RETURN(FAIL):
+ fi:
+fi:
+
+
+lu:=evalf(evalc(pit[makom[1]])):
+
+if coeff(lu,I,1)>(1/10)^(Digits-2) then
+ print(`Dominant root is complex`):
+ RETURN(FAIL):
+fi:
+
+lu:=pit[makom[1]]:
+
+ope1:=Yafe(subs(N=lu*N,ope),N)[2]:
+ope1,lu:
+end:
+
+
+
+
+
+
+
+
+
+#Atom(s,r,i,x,K): Expanding (n+i)^(s/r)-n^(s/r) in terms of
+#x=n^(-1/r) up to K terms
+#For example try:
+#Atom(2,3,2,x,3);
+Atom:=proc(s,r,i,x,K) local gu,y,i1:
+gu:=(1+i*y)^(s/r)-1:
+gu:=taylor(gu,y=0,K+1):
+gu:=add(coeff(gu,y,i1)*y^i1,i1=0..K):
+expand(subs(y=x^r,gu)/x^s):
+end:
+
+
+
+
+#FindExpP1(ope,n,N,r,x): finds the exponential part of the asymptotics
+#in terms of x=n^(1/r)
+#for the solutions of ope(n,N)a(n)=0 if it is of type r
+#For example, try:
+#FindExpP1((n+1)*N^2-2*(n+5)*N+n+3,n,N,2,x);
+FindExpP1old:=proc(ope,n,N,r,x) local c,eq,var,s,sof,gu,ope1,deg,i,i1,v:
+sof:=add(c[s]*x^s,s=1..r-1):
+var:={seq(c[i],i=1..r-1)}:
+
+deg:=degree(ope,n):
+ope1:=expand(ope/n^deg):
+ope1:=expand(subs(n=1/x^r,ope1)):
+
+gu:=0:
+
+for i from 0 to degree(ope1,N) do
+ gu:=gu+coeff(ope1,N,i)*exp(add(c[s]*Atom(s,r,i,x,2),s=1..r-1) ):
+od:
+
+gu:=taylor(gu,x=0,2*r-1):
+
+
+
+eq:={seq(coeff(gu,x,i1),i1=r..2*r-2)}:
+
+
+var:=[solve(eq,var)][1]:
+for v  in var do
+ if op(1,v)=op(2,v) then
+  RETURN(FAIL):
+ fi:
+od:
+
+subs(var,sof):
+
+end:
+
+
+
+
+
+
+
+#Findr(ope,n,N): Given an operator ope(n,N)
+#such that the leading terms in n is a multiple of
+#(N-1), finds the largest r such that it is
+# a multiple of (N-1)^r. For example, try:
+#Findr((N-1)^4,n,N);
+Findr:=proc(ope,n,N) local ope1,r:
+ope1:=coeff(expand(ope),n,degree(ope,n)):
+if expand(subs(N=1,ope1))<>0 then
+  RETURN(FAIL):
+fi:
+
+for r from 1 while expand(subs(N=1,diff(ope1,N$r)))=0 do od:
+r:
+end:
+
+
+FindExpP:=proc(ope,n,N)  local r,x,lu:
+ r:=Findr(ope,n,N):
+
+
+  if r=FAIL then
+    RETURN(FAIL):
+  fi:
+ lu:=FindExpP1(ope,n,N,r,x) :
+  if lu=FAIL then
+    RETURN(FAIL):
+   fi:
+  subs(x=n^(1/r),lu):
+end:
+
+
+
+
+#NewOpe(ope,n,N,K): the exponential part + the transformed operator
+#(up to degree K asymp. in the coefficients)
+#For example, try:
+#NewOpe((n+1)*N^2-2*(n+5)*N+n+3,n,N,4);
+NewOpe:=proc(ope,n,N,K,x)  local r,lu,lu1,ope1,deg,s,i,gu,mu:
+ r:=Findr(ope,n,N):
+  if r=FAIL then
+    RETURN(FAIL):
+  fi:
+ lu:=FindExpP1(ope,n,N,r,x) :
+ lu1:=FindExpP(ope,n,N) :
+
+  if lu=FAIL then
+    RETURN(FAIL):
+   fi:
+
+deg:=degree(ope,n):
+ope1:=expand(ope/n^deg):
+ope1:=subs(n=1/x^r,ope1):
+ope1:=expand(ope1):
+
+
+gu:=0:
+
+for i from 0 to degree(ope1,N) do
+  mu:=0:
+ for s from 1 to r-1 do
+     mu:=mu+coeff(lu,x,s)*Atom(s,r,i,x,K+3):
+  od:
+     
+ gu:=gu+coeff(ope1,N,i)*exp(mu)*N^i:
+od:
+
+gu:=taylor(gu,x=0,K+3):
+lu1,add(coeff(gu,x,i)*x^i,i=0..K):
+end:
+
+
+
+#Bdok(ope,n,N,K): the exponential part + the transformed operator
+#(up to degree K asymp. in the coefficients)
+#For example, try:
+#Bdok((n+1)*N^2-2*(n+5)*N+n+3,n,N,4);
+Bdok:=proc(ope,n,N,K)  local r,x,lu,lu1,ope1,deg,s,i,gu,mu:
+ r:=Findr(ope,n,N):
+  if r=FAIL then
+    RETURN(FAIL):
+  fi:
+ lu:=FindExpP1(ope,n,N,r,x) :
+ lu1:=FindExpP(ope,n,N) :
+  if lu=FAIL then
+    RETURN(FAIL):
+   fi:
+
+deg:=degree(ope,n):
+ope1:=expand(ope/n^deg):
+ope1:=subs(n=1/x^r,ope1):
+ope1:=expand(ope1):
+
+
+gu:=0:
+
+for i from 0 to degree(ope1,N) do
+  mu:=0:
+ for s from 1 to r-1 do
+     mu:=mu+coeff(lu,x,s)*Atom(s,r,i,x,K+3):
+  od:
+     
+ gu:=gu+coeff(ope1,N,i)*exp(mu)*N^i:
+od:
+
+gu:=taylor(gu,x=0,K+3):
+lu1,add(coeff(gu,x,i)*x^i,i=0..K):
+end:
+
+
+
+
+OpePerN:=proc(N,n,r) local i,j,ope:
+ope:=1-add(N^(-i)*mul(n-j,j=1..i-1),i=1..r):
+ope:=expand(N^r*subs(n=n+r,ope)):
+ope:=add(factor(coeff(ope,N,i))*N^i,i=0..r):
+ope:=expand(FindKk(ope,n,N)[2]):
+ope:=add(factor(coeff(ope,N,i))*N^i,i=0..r):
+ope:=numer(Nor(ope,n,N)[1]):
+ope:=add(factor(coeff(ope,N,i))*N^i,i=0..r):
+end:
+
+OpePer:=proc(N,n,r) local i,j,ope:
+ope:=1-add(N^(-i)*mul(n-j,j=1..i-1),i=1..r):
+ope:=expand(N^r*subs(n=n+r,ope)):
+end:
+
+OpePerG:=proc(N,n,S) local i,j,ope,r,gu,t:
+ope:=1-add(N^(-i)*mul(n-j,j=1..i-1),i in S):
+r:=max(op(S)):
+ope:=expand(N^r*subs(n=n+r,ope)):
+
+gu:=exp(add(t^i/i,i in S)):
+gu:=taylor(gu,t=0,degree(ope,N)+2):
+
+ope,[seq(coeff(gu,t,i)*i!,i=1..degree(ope,N))]:
+end:
+
+
+#Finda(ope,N,x,r): finds the first power x^a in the
+#asymptotic solution of ope(N,n)f(n)=0, where x=1/n^(1/r)
+#For example, try:
+#Finda((1+x)-(1+3*x)*N,N,x,1);
+Finda:=proc(ope,N,x,r) local gu,i,a,a1:
+
+gu:=add(coeff(ope,N,i)*(1+i*x^r)^(a/r),i=0..degree(ope,N)):
+
+gu:=taylor(gu,x=0,5*r+5):
+gu:=expand(add(coeff(gu,x,i)*x^i,i=0..5*r+4)):
+
+for i from 0 to 5*r+4 while expand(simplify(coeff(gu,x,i)))=0 do od:
+
+if i=5*r+5 then
+  RETURN(FAIL):
+fi:
+
+
+a1:=[solve(coeff(gu,x,i),a)][1]:
+
+
+if a1=NULL then
+ RETURN(FAIL):
+elif not type(a1,integer) then
+ RETURN(FAIL):
+
+else
+ RETURN(-a1):
+fi:
+end:
+
+
+
+
+
+
+#OneStepG(ope,N,x,r,Cu): Given a partial
+#asympt. expansion, in terms of x=1/n^(1/r),
+#for solutions of the recurrence equation
+#ope(n,N)a(n)=0, where ope is normalized of type
+#r (i.e. its leading coeff. is a multiple of (N-1)^r)
+#finds the next term
+#OneStepG((1+x)-(1+3*x)*N,N,x,1,x^2);
+OneStepG:=proc(ope,N,x,r,Cu) local gu,i,a,c,c1,Cu1,K,ka:
+K:=degree(Cu,x):
+Cu1:=Cu+c*x^(K+1):
+gu:=add(coeff(ope,N,i)*
+add(coeff(Cu1,x,a)*x^a*(1+i*x^r)^(-a/r),a=ldegree(Cu1,x)..degree(Cu1,x)),
+i=0..degree(ope,N)):
+gu:=expand(gu):
+
+gu:=taylor(gu,x=0,5*r+8+K):
+gu:=
+simplify(expand(add(coeff(gu,x,i)*x^i,i=0..5*r+7+K))):
+
+gu:=pashet(gu,x,5*r+7+K,c):
+ka:=expand(simplify(coeff(gu,x,ldegree(gu,x)))):
+ka:=simplify(ka):
+
+c1:=[solve(simplify(coeff(gu,x,ldegree(gu,x))),c)][1]:
+
+
+if c1=NULL then
+ RETURN(FAIL):
+else
+ RETURN(subs(c=c1,Cu1)):
+fi:
+end:
+
+
+
+#Asy1(ope,n,N,K): the asymptotic expansion of solutions 
+#to ope(n,N)f(n)=0,where ope(n,N) is  a recurrence operator
+#up to the K's term
+Asy1:=proc(ope,n,N,K)
+local gu,lu,alpha,mu,ope1,ku,i,f,x,ka,vu,ope1A,r,Kk,pu,a:
+
+
+gu:=FindKk(ope,n,N):
+Kk:=gu[1]:
+
+ope1:=gu[2]:
+
+vu:=Nor(ope1,n,N):
+
+if vu=FAIL then
+  RETURN(FAIL):
+fi:
+
+ope1:=vu[1]:
+lu:=vu[2]:
+
+ope1A:=Aope1(ope1,n,N):
+
+
+
+for r from 1 while subs(N=1,diff(ope1A,N$r))=0 do od:
+
+
+if r=1 then
+
+###r=1 case
+
+mu:=add(
+subs(n=1/x,coeff(ope1,N,i))*(1+i*x)^alpha,i=ldegree(ope1,N)..degree(ope1,N)):
+mu:=normal(mu):
+ku:=factor(coeff(taylor(mu,x=0,2),x,1)):
+
+
+ka:=simplify([solve(ku,alpha)]):
+
+
+if coeff(ka[1],I,1)<>0 then
+  RETURN(FAIL):
+fi:
+
+alpha:=max(op(ka)):
+
+
+if normal(subs(N=1,ope1))=0 then
+ RETURN(lu^n*n^alpha,Kk):
+fi:
+
+f:=1:
+for i from 1 to K do
+f:=OneStepA(ope1,n,N,alpha,f):
+od:
+
+if f=FAIL then
+ RETURN(FAIL):
+fi:
+
+RETURN(lu^n*n^alpha*f,Kk):
+
+#end r=1 case
+
+else
+
+
+
+ope1:=numer(ope1):
+
+
+if expand(diff(ope1,n))=0 then
+ ka:=n^(r-1)*lu^n:
+ RETURN(ka,Kk):
+fi:
+
+ pu:=FindExpP(ope1,n,N):
+
+if pu=FAIL then
+  RETURN(FAIL):
+fi:
+
+ope1:=NewOpe(ope1,n,N,K+5,x)[2]:
+
+a:=Finda(ope1,N,x,r):
+
+if a=FAIL then
+ RETURN(FAIL):
+fi:
+ka:=x^a:
+
+for i from a to K do
+ ka:=OneStepG(ope1,N,x,r,ka):
+od:
+
+ka:=exp(pu)*subs(x=1/n^(1/r),ka)*lu^n:
+
+RETURN(ka,Kk):
+fi:
+end:
+
+
+
+pashet:=proc(gu,x,K,c) local gu1,i,pu:
+
+Digits:=300:
+
+gu1:=0:
+
+for i from 0 to K do
+ pu:=evalf(coeff(gu,x,i)):
+if not (abs(coeff(pu,c,1))<10^(-20)  and abs(coeff(pu,c,0))<10^(-20) )
+then
+  gu1:=gu1+coeff(gu,x,i)*x^i:
+fi:
+od:
+gu1:
+end:
+
+
+  
+ 
+#NakedStirling(n,K): the asymptotic expansion of
+#n!/((n/e)^n*sqrt(2*Pi*n). For example, try:
+#NakedStirling(n,5);
+NakedStirling:=proc(n,K) local gu,i:
+gu:=n!/(n/exp(1))^n/sqrt(2*Pi*n):
+gu:=expand(asympt(gu,n,K+1)):
+
+(n/exp(1))^n*sqrt(2*Pi*n), add(coeff(op(i,gu),n,-(i-1))/n^(i-1),i=1..K+1):
+end:
+
+
+#AsyF(ope,n,N,M): the asymptotic expansion of solutions 
+#to ope(n,N)f(n)=0,where ope(n,N) is  a recurrence operator
+#up to the M's term, in terms of the factorial function
+AsyF:=proc(ope,n,N,M) local K,k,gu:
+gu:=Asy1(ope,n,N,M):
+
+if gu=FAIL then
+ RETURN(FAIL):
+fi:
+
+K:=gu[2][1]:
+k:=gu[2][2]:
+gu:=gu[1]:
+(n/K)!^k*subs(n=n/K,gu):
+end:
+
+
+
+#AsyFC(ope,n,N,M,Ini,K): the asymptotic expansion of solutions 
+#to ope(n,N)f(n)=0, with the given initial conditions
+#where ope(n,N) is  a recurrence operator
+#up to the M's term, in terms of the factorial function
+#and complete with an empirically derived constant in front
+#using K terms
+AsyFC:=proc(ope,n,N,M,Ini,K) local gu,L,i,mu,er,C,D1:
+Digits:=100:
+gu:=AsyF(ope,n,N,M):
+L:=SeqFromRec(ope,n,N,evalf(Ini),K):
+mu:=[seq(evalf(L[i]/subs(n=i,gu)),i=K-10..K)]:
+er:=mu[nops(mu)]-mu[nops(mu)-1]:
+D1:=-trunc(log(abs(er))/log(10))-3:
+if D1<2 then
+ print(`can't determine the constant`):
+RETURN(gu):
+fi:
+
+C:=evalf(mu[nops(mu)],D1):
+C,gu:
+end:
+
+
+
+
+
+###Asy
+
+#Asy1special(ope,n,N,K,x): the asymptotic expansion of solutions 
+#to ope(n,N)f(n)=0,given as a list
+#[pu,lu,expansion,r] where it is
+#exp(pu)*lu^n*expansion(x), where x=1/n^(1/r), and r is
+#a positive integer. It also returns [K,k] (see Asy1)
+#where ope(n,N) is  a recurrence operator
+#up to the K's term
+Asy1special:=proc(ope,n,N,K,x)
+local gu,lu,alpha,mu,ope1,ku,i,f,ka,vu,ope1A,r,Kk,pu,a:
+
+
+gu:=FindKk(ope,n,N):
+
+
+
+Kk:=gu[1]:
+
+ope1:=gu[2]:
+
+vu:=Nor(ope1,n,N):
+
+
+if vu=FAIL then
+  RETURN(FAIL):
+fi:
+
+ope1:=vu[1]:
+lu:=vu[2]:
+
+ope1A:=Aope1(ope1,n,N):
+
+
+
+for r from 1 while subs(N=1,diff(ope1A,N$r))=0 do od:
+
+
+if degree(ope1,n)=0 then
+RETURN([0,lu,x^(-r+1),1,1],Kk):
+fi:
+
+
+if r=1 then
+
+###r=1 case
+
+mu:=add(
+subs(n=1/x,coeff(ope1,N,i))*(1+i*x)^alpha,i=ldegree(ope1,N)..degree(ope1,N)):
+mu:=normal(mu):
+ku:=factor(coeff(taylor(mu,x=0,2),x,1)):
+
+
+ka:=simplify([solve(ku,alpha)]):
+
+
+if coeff(ka[1],I,1)<>0 then
+  RETURN(FAIL):
+fi:
+
+alpha:=max(op(ka)):
+
+
+if normal(subs(N=1,ope1))=0 then
+RETURN([0,lu,x^(-alpha),1,1],Kk):
+fi:
+
+f:=1:
+for i from 1 to K do
+f:=OneStepA(ope1,n,N,alpha,f):
+od:
+
+if f=FAIL then
+ RETURN(FAIL):
+fi:
+
+f:=subs(n=1/x,f):
+RETURN([0,lu,x^(-alpha),f,1],Kk):
+#end r=1 case
+
+else
+
+
+
+ope1:=numer(ope1):
+
+
+if expand(diff(ope1,n))=0 then
+ ka:=n^(r-1)*lu^n:
+ RETURN(ka,Kk):
+fi:
+
+
+
+
+ pu:=FindExpP(ope1,n,N):
+
+
+
+if pu=FAIL then
+  RETURN(FAIL):
+fi:
+
+
+ope1:=NewOpe(ope1,n,N,K+5,x)[2]:
+
+a:=Finda(ope1,N,x,r):
+
+if a=FAIL then
+ RETURN(FAIL):
+fi:
+ka:=x^a:
+
+for i from a to K do
+ ka:=OneStepG(ope1,N,x,r,ka):
+od:
+
+
+RETURN([pu,lu,1,ka,r],Kk):
+
+fi:
+end:
+
+#IsMispar(a): is a (generalized) numeric type
+IsMispar:=proc(a) :
+if type(a,numeric) then
+ true:
+elif type(a,`^`) and type(op(1,a),numeric) and type(op(2,a),numeric)  then
+ true:
+elif a=Pi  then
+true:
+elif type(a,`^`) and op(1,a)=Pi and type(op(2,a),numeric)  then
+ true:
+elif type(a,function) and type(op(1,a),numeric) then
+ true:
+else
+ false:
+fi:
+end:
+
+#GetRidOfConst(P): gets rid of the constant in front
+GetRidOfConst:=proc(P) local i,P1:
+if not type(P,`*`) then
+ RETURN(P):
+fi:
+
+P1:=1:
+
+for i from 1 to nops(P) do
+ if not IsMispar(op(i,P)) then
+  P1:=P1*op(i,P):
+ fi:
+od:
+P1:
+end:
+
+#Asy(ope,n,N,M): the asymptotic expansion of solutions 
+#to ope(n,N)f(n)=0,where ope(n,N) is  a recurrence operator
+#up to the M's term
+Asy:=proc(ope,n,N,M) local K,k,gu,vu,vu1,vu2,pu,lu,ka1,ka2,r,x,i,vu2a:
+gu:=Asy1special(ope,n,N,M,x):
+if gu=FAIL then
+ RETURN(FAIL):
+fi:
+
+K:=gu[2][1]:
+k:=gu[2][2]:
+
+
+gu:=gu[1]:
+pu:=subs(n=n/K,gu[1]):
+lu:=gu[2]:
+ka1:=gu[3]:
+ka2:=gu[4]:
+r:=gu[5]:
+ka2:=subs(x=K^(1/r)*x,ka2):
+vu:=NakedStirling(n,M+1):
+vu1:=vu[1]:
+vu2:=vu[2]:
+
+
+vu1:=subs(n=n/K,vu1)^k:
+vu2:=subs(n=n/K,vu2)^k:
+vu2:=expand(subs(n=1/x^r,vu2)):
+
+vu2:=expand(ka2*vu2):
+
+
+vu2:=add(simplify(coeff(vu2,x,i))*x^i,i=0..M*r):
+vu2:=subs(x=1/n^(1/r),vu2):
+
+
+ka1:=subs(x=1/n^(1/r),ka1):
+ka1:=subs(n=n/K,ka1):
+vu2a:=op(1,vu2):
+vu2:=expand(normal(vu2/vu2a)):
+gu:=simplify(vu2a*vu1*lu^(n/K))*exp(pu)*ka1*vu2:
+
+GetRidOfConst(gu):
+
+end:
+
+
+
+
+
+
+#AsyC(ope,n,N,M,Ini,K): the asymptotic expansion of solutions 
+#to ope(n,N)f(n)=0, with the given initial conditions
+#where ope(n,N) is  a recurrence operator
+#up to the M's term,
+#and complete with an empirically derived constant in front
+#using K terms
+AsyC:=proc(ope,n,N,M,Ini,K) local gu,L,i,mu,er,C,D1:
+Digits:=100:
+gu:=Asy(ope,n,N,M):
+if gu=FAIL then
+ RETURN(FAIL):
+fi:
+L:=SeqFromRec(ope,n,N,evalf(Ini),K):
+
+mu:=[seq(evalf(L[i]/subs(n=i,gu)),i=K-10..K)]:
+
+if abs(mu[nops(mu)])<10^(-7) then
+ print(`Something is fishy`):
+ RETURN(FAIL):
+fi:
+
+er:=mu[nops(mu)]-mu[nops(mu)-1]:
+
+
+if er=0 then
+ D1:=Digits:
+else
+D1:=-trunc(log(abs(er))/log(10))-3:
+fi:
+
+if D1<2 then
+ print(`can't determine the constant`):
+RETURN(gu):
+fi:
+
+C:=evalf(mu[nops(mu)],D1):
+identify(C),gu:
+end:
+
+
+
+
+
+
+
+
+#FindExpP1g(ope,n,N,r,x,ds): finds the exponential part of the asymptotics
+#in terms of x=n^(1/r) as a poly. of degree ds in x
+#for the solutions of ope(n,N)a(n)=0 if it is of type r
+#For example, try:
+#FindExpP1g((n+1)*N^2-2*(n+5)*N+n+3,n,N,2,x,1);
+FindExpP1g:=proc(ope,n,N,r,x,ds) local c,eq,var,s,sof,gu,ope1,
+deg,i,i1,v,ka,i11:
+sof:=add(c[s]*x^s,s=1..ds):
+var:={seq(c[i],i=1..ds)}:
+
+deg:=degree(ope,n):
+ope1:=expand(ope/n^deg):
+ope1:=expand(subs(n=1/x^r,ope1)):
+
+
+gu:=0:
+
+for i from 0 to degree(ope1,N) do
+ gu:=gu+coeff(ope1,N,i)*exp(add(c[s]*Atom(s,r,i,x,2),s=1..ds) ):
+od:
+
+
+gu:=taylor(gu,x=0,3*r+10):
+
+
+for i1 from 0 to 3*r+8 while coeff(gu,x,i1)=0 do od:
+
+eq:={seq(coeff(gu,x,i11),i11=i1..i1+ds-1)}:
+eq:={seq(coeff(gu,x,i11),i11=i1..i1+ds)}:
+
+lprint(eq,var):
+ka:=[solve(eq,var)]:
+
+
+if ka=[] then
+ RETURN(FAIL):
+fi:
+
+
+var:=ka[1]:
+for v  in var do
+ if op(1,v)=op(2,v) then
+  RETURN(FAIL):
+ fi:
+od:
+
+subs(var,sof):
+
+end:
+
+
+#FindExpP1(ope,n,N,r,x): finds the exponential part of the asymptotics
+#in terms of x=n^(1/r)
+#for the solutions of ope(n,N)a(n)=0 if it is of type r
+#For example, try:
+#FindExpP1((n+1)*N^2-2*(n+5)*N+n+3,n,N,2,x);
+FindExpP1:=proc(ope,n,N,r,x) local s,gu,nosaf:
+
+for s from 1 to r-1 do
+ for nosaf from 0 to 1 do
+ gu:=FindExpP1gExtra(ope,n,N,r,x,s,nosaf):
+ if gu<>FAIL then
+  RETURN(gu):
+ fi:
+od:
+od:
+
+FAIL:
+end:
+
+
+
+
+
+#FindExpP1gExtra(ope,n,N,r,x,ds,nosaf)
+#: finds the exponential part of the asymptotics
+#in terms of x=n^(1/r) as a poly. of degree ds in x
+#for the solutions of ope(n,N)a(n)=0 if it is of type r
+#For example, try:
+#FindExpP1gExtra((n+1)*N^2-2*(n+5)*N+n+3,n,N,2,x,1);
+FindExpP1gExtra:=proc(ope,n,N,r,x,ds,nosaf) local c,eq,var,s,sof,gu,ope1,
+deg,i,i1,v,ka,i11,ku,varf:
+sof:=add(c[s]*x^s,s=1..ds):
+var:={seq(c[i],i=1..ds)}:
+
+deg:=degree(ope,n):
+ope1:=expand(ope/n^deg):
+ope1:=expand(subs(n=1/x^r,ope1)):
+
+
+gu:=0:
+
+for i from 0 to degree(ope1,N) do
+ gu:=gu+coeff(ope1,N,i)*exp(add(c[s]*Atom(s,r,i,x,2),s=1..ds) ):
+od:
+
+
+gu:=taylor(gu,x=0,3*r+10):
+
+
+for i1 from 0 to 3*r+8 while coeff(gu,x,i1)=0 do od:
+
+eq:={seq(coeff(gu,x,i11),i11=i1..i1+ds-1+nosaf)}:
+
+
+ka:=[solve(eq,var)]:
+
+
+if ka=[] then
+ RETURN(FAIL):
+fi:
+
+
+var:=ka[1]:
+for v  in var do
+ if op(1,v)=op(2,v) then
+  RETURN(FAIL):
+ fi:
+od:
+
+#varf:=evalf(var):
+
+#ku:=[seq(subs(varf,c[s]),s=1..ds)]:
+
+#print(`ku is`, ku):
+#add(ku[s]*x^s,s=1..ds):
+
+subs(var,sof):
+
+end:
+
+
+###EKHAD
+#solve1:=readlib(`solve/linear`):
+solve1:=solve:
+Ezra:=proc()
+if args=NULL then
+print(`EKHAD`):
+print(`A Maple package for proving Hypergemetric (Binomial Coeff.)`):
+print(` and other kinds of identities`):
+print(`This version (Feb, 25, 1999) is much faster than the previous`):
+print(`version, thanks to a SLIGHT (yet POWERFUL) modification suggested by`):
+print(` FREDERIC CHYZAK `):
+lprint(``):
+print(`For help with a specific procedure, type "ezra(procedure_name);"`):
+print(`Contains procedures: `):
+print(`findrec,ct,zeil,zeilpap,zeillim,AZd,AZc,AZpapd,AZpapc,celine`):
+fi:
+ 
+ 
+if nops([args])=1 and op(1,[args])=`celine` then
+print(`celine(FUNCTION,ORDER_n,ORDER_k) applies Sister Celine's technique`):
+print(`It inputs a function (n,k)->FUNCTION, and the guessed orders in`):
+print(`n and k, ORDER_n,ORDER_k respectively, and outputs a partial`):
+print(`k-free recurrence`):
+print(`it  also finds the telescoped form of the recurrence.`):   
+print(` In input, do not raise products of factorials to powers;  `):  
+print(`instead raise each factorial to the power. `):
+print(`For example:celine((n,k)->binomial(n,k),1,1);`):
+print(`celine ((n,k)->n!*(2*k)!*(-2)^(n-k)/(k!^3*(n-k)!),2,2);`):
+ 
+fi:
+ 
+ 
+if nops([args])=1 and op(1,[args])=`findrec` then
+print(`findrec(f,DEG,ORDER,n,N) finds empirically an ordi. linear recurrence`):
+print(` with polynomial coeffs. The input is a sequence f given as a list`):
+print(`STARTING at f[1],i.e. f[0] is not considered`):
+print(` where DEG:=the maximal degree of the coefficients`):
+print(`and ORDER:=the order of the recurrence.  The output is the operator`):
+print(` in n and N, where N is the forward unit shift: Nf(n):=f(n+1).`):
+print(`For example findrec([1,1,2,3,5,8,13,21,34],0,2,n,N) should yield`):
+print(`N^2-N-1 , and findrec([1,2,5,14,42,132,429],1,1,m,M) should yield`):
+print(`(m+1)*M-(4*m-2). If there is not enough data, you will get an`):
+print(`an error message. If there is no operator, you would get 0`):
+fi:
+ 
+if nops([args])=1 and op(1,[args])=`AZpapc` then
+print(`AZpapc(INTEGRAND,y,x) inputs a hypergeometric integrand`):
+print(`in the continuous variables y and x (i.e. the logarithmic derivatives`):
+print(`diff(INTEGRAND,x)/INTEGRAND and diff(INTEGRAND,y)/INTEGRAND are`):
+print(`rational functions in x and y)`):
+print(`and outputs a paper with a proof of the linear differential equation`):
+print(`that the definite integral w.r.t. to y (which is a function of x)`):
+print(`satisfies. It uses the method of`):
+print(`Gert Almkvist and Doron Zeilberger, "The method of differentiating`):
+print(`under the integral sign", J. Symbolic Computation 10(1990), 571-591.`):
+lprint(``):
+print(`It could be used to establish the diff. eq. of the `):
+print(`classical orthogonal polynomials, when they are defined in terms`):
+print(`or their generating funtion.`):
+print(`For example AZpapc(1/sqrt(1-2*x*t+t^2)/t^(n+1),t,x) gives the`):
+print(`the differential equation satisfied by the Legendre polynomials`):
+ 
+fi:
+ 
+ 
+ 
+if nops([args])=1 and op(1,[args])=`AZpapd` then
+print(`AZpapd(INTEGRAND,x,n) inputs a hypergeometric integrand`):
+print(`in the continuous variable x and the discrete variable n`):
+print(`i.e. i.e. A(x,n+1)/A(x,n) and A'(x,n)/A(x,n) are rational functions`):
+print(`of (x,n)),`):
+print(`and outputs a paper with a proof of the linear recurrence equation`):
+print(`that the definite integral w.r.t. to y (which is a function of n)`):
+print(`assuming that the integrand (or rather it times the certificate`):
+print(`vanishes at the endpoints, or it is a  contour integrals`):
+print(`satisfies. It assumes the following: A(x,n) is not a product of`):
+print(`of a function of n and a function of x`):
+print(`It uses the method of`):
+print(`Gert Almkvist and Doron Zeilberger, "The method of differentiating`):
+print(`under the integral sign", J. Symbolic Computation 10(1990), 571-591`):
+print(`It could be used to establish the recurrences of the `):
+print(`classical orthogonal polynomials, when they are defined in terms`):
+print(`or their generating funtion`):
+print(`For example AZpapd(1/sqrt(1-2*x*t+t^2)/t^(n+1),t,n) gives the`):
+print(`the recurrence, and proof, satisfied by the Legendre polynomials`):
+ 
+fi:
+ 
+ 
+if nops([args])=1 and op(1,[args])=`AZd` then
+print(`AZd(A,x,n,N) finds a recurrence of order ORDER<=8`):
+print(`phrased in terms of n, and the shift in n, N`):
+print(`for the integrale of A(x,n) with respect to x, whenever A(x,n) is`):
+print(`hypergeometric in (x,n),i.e. A(x,n+1)/A(x,n) and A'(x,n)/A(x,n) are`):
+print(`rational funtions of x and n. It follows the algorithn of`):
+print(`Gert Almkvist and Doron Zeilberger, "The method of differentiating`):
+print(`under the integral sign", J. Symbolic Computation 10(1990), 571-591`):
+print(`A should not be a product of a function of x and a function of n.`):
+print(``):
+print(`AZd(A,x,n,N) returns the expression seq. ope(n,N),cert(x,n)`):
+print(`satisfying ope(n,N)A(x,n)=diff(cert(x,n)*A(x,n),x).`):
+print(`If no recurrence is found, it returns 0.`):
+print(``):
+print(`A verbose version is AZpapd(A,x,n), type ezra(AZpapd) for details.`):
+print(``):
+print(`For example AZd(1/sqrt(1-2*x*t+t^2)/t^(n+1),t,n,N) gives`):
+print(`the diff.eq., and proof certificate, for the Legendre polct:ynomials.`):
+ 
+fi:
+ 
+ 
+if nops([args])=1 and op(1,[args])=`AZc` then
+print(`AZc(A,y,x,D) tries to finds a linear diff.eq. of order <=8,`):
+print(` phrased in terms of x, and diff.w.r.t x, D`):
+print(`for the integrale of A(x,y) with respect to x, whenever A(x,y) is`):
+print(`hypergeometric in (x,y),i.e.  A_x(x,y)/A(x,y) and A_y(x,y)/A(x,y) are`):
+print(`rational funtions of x and y. It follows the algorithn of`):
+print(`Gert Almkvist and Doron Zeilberger, "The method of differentiating`):
+print(`under the integral sign", J. Symbolic Computation 10(1990), 571-591`):
+print(`AZc(A,y,x,D) returns the expression seq. ope(x,D),cert(x,n)`):
+print(`satisfying ope(x,D)A(x,y)=diff(cert(x,y)*A(x,y),y).`):
+print(`If no linear diff. eq. of order<=8 is found, it returns 0`):
+print(`see AZpapc for a verbose vsersion`):
+print(`For example AZc(1/sqrt(1-2*x*t+t^2)/t^(n+1),t,x,D) gives the`):
+print(`the diff.eq., and proof certificate for the Legendre polynomials.`):
+ 
+fi:
+ 
+ 
+ if nops([args])=1 and op(1,[args])=`ct` then
+ 
+ print(` ct(SUMMAND,ORDER,k,n,N)`): 
+print(`This is a Maple inplementation of the algorithm described in Ch. 6`):
+print(`of the book A=B, first proposed in : D. Zeilberger, "The method of`):
+print(`of creative telescoping", J.Symbolic Computation 11(1991) 195-204`):
+print(``):
+print(`finds a recurrence for SUMMAND in the parameters k and n,   `):
+print(` of order ORDER, with N is the chosen symbol for the shift in n.`):
+ print(``):
+ print(`SUMMAND should be a product of factorials and/or binomial coeffs`):
+ print(`and/or rising factorials, where (a)_k is denoted by rf(a,k)`):
+ print(`and/or powers of k and n, and, optionally, a polynomial factor`):
+print(`The output consists of an operator ope(N,n) and a certificate R(n,k)`):
+print(`with the properties that if we define G(n,k):=R(n,k)*SUMMAND then`):
+print(`ope(N,n)SUMMAND(n,k)=G(n,k+1)-G(n,k)`):
+print(`which is a routinely verifiable identity.`):
+ print(`For example "ct(binomial(n,k),1,k,n,N);" would yield the output`):
+print(`  N-2, k/(k-n-1) `):
+ fi:
+ 
+if nops([args])=1 and op(1,[args])=`zeil` then
+print(`The syntax is:`):
+ print(` zeil(SUMMAND,k,n,N) or zeil(SUMMAND,k,n,N,MAXORDER) or  `):
+ print(` zeil(SUMMAND,k,n,N,MAXORDER,parameter_list) `):
+ print(` finds a linear recurrence equation for SUMMAND, with`):
+ print(` polynomial coefficients`):
+ print(`of ORDER<=MAXORDER, where the default of MAXORDER is 6`):
+ print(`in the parameter n, the shift operator in n being N`):
+print(`of the form ope(N,n)SUMMAND=G(n,k+1)-G(n,k)`):
+print(`where G(n,k):=R(n,k)*SUMMAND, and R(n,k) is the 2nd item of output.`):
+print(`The output is ope(N,n),R(n,k) .`):
+ print(`For example zeil(binomial(n,k),k,n,N) would yield`):
+print(`  N-2, k/(k-n-1)  `);
+print(` in which N-2 is the "ope" operator, and k/(k-n-1) is R(n,k) `);
+ print(`SUMMAND should be a product of factorials and/or binomial coeffs`):
+ print(`and/or rising factorials, where (a)_k is denoted by rf(a,k)`):
+ print(`and/or powers in k and n, and, optionally, a polynomial factor.`):
+ lprint(``):
+ print(`The last optional parameter, is the list of other parameters,`):
+ print(`if present. Giving them causes considerable speedup. For example`):
+ print(` zeil(binomial(n,k)*binomial(a,k)*binomial(b,k),k,n,N,6,[a,b])`):
+ 
+fi:
+ 
+if nops([args])=1 and op(1,[args])=`zeilpap` then
+print(` zeilpap(SUMMAND,k,n) or zeilpap(SUMMAND,k,n,NAME,REF)`):
+print(`Just like zeil but writes a paper with the proof`):
+print(`NAME and REF are optional name and reference`):
+print(`Warning: It assumes that the definite summation w.r.t. k`):
+print(`extends over all k where it is non-zero, and that it is zero`):
+print(`for other k`):
+print(`For non-natural summation limits, use zeillim`):
+fi:
+ 
+if nops([args])=1 and op(1,[args])=`zeillim` then
+ print(` zeillim(SUMMAND,k,n,N,alpha,beta) `):
+print(`Similar to zeil(SUMMAND,k,n,N) but outputs a recurrence for `):
+print(` the sum of SUMMAND from k=alpha to k=n-beta .`):
+print(`Outputs the recurrence operator, certificate and right hand side.`):
+print(`Note carefully: The upper limit of the sum will be n-beta, not beta. `):
+print(`For example, "zeillim(binomial(n,k),k,n,N,0,1);" gives output of `):
+print(` N-2, k/(k-n-1),1 `):
+print(` which means that SUM(n):=2^n-1 satisfies the recurrence `):
+print(` (N-2)SUM(n)=1, as certified by R(n,k):=k/(k-n-1) `):
+fi:
+ 
+ 
+end:
+ 
+#yafe just translates from operator notation to everyday notation
+ 
+yafe:=proc(ope,N,n,SUM)
+local gu,i:
+gu:=0:
+ 
+for i from 0 to degree(ope,N) do
+ gu:=gu+coeff(ope,N,i)*subs(n=n+i,SUM):
+od:
+ 
+gu:
+end:
+ 
+ 
+ 
+yafec:=proc(ope,D,x,INTEGRAND)
+local gu,i:
+ 
+ gu:=coeff(ope,D,0)*INTEGRAND:
+ 
+ 
+for i from 1 to degree(ope,D) do
+ gu:=gu+coeff(ope,D,i)*diff(INTEGRAND,x$i):
+od:
+ 
+gu:
+end:
+ 
+  
+simplify1:=proc(bitu,k,a)
+local gu,gu1,i,khez,sp:
+sp:=1:
+gu:=bitu:
+ 
+if type(gu,`*`) then
+ 
+ for i from 1 to nops(gu) do
+  gu1:=op(i,gu):
+ 
+ if type(gu1,`^`) and type(op(2,gu1), integer) then
+ 
+     khez:=op(2,gu1):
+     gu1:=op(1,gu1):
+     sp:=sp*simplify(subs(k=k+a,gu1)/gu1)^khez:
+  
+   else 
+     sp:=sp*simplify(subs(k=k+a,gu1)/gu1):
+ 
+   fi:
+ 
+od:
+ 
+elif type(gu,`^`) and type(op(2,gu), integer) then
+   khez:=op(2,gu):
+   gu1:=op(1,gu):
+   sp:=sp*simplify(subs(k=k+a,gu1)/gu1)^khez:  
+ 
+ 
+else
+ 
+ sp:=simplify(subs(k=k+a,gu)/gu):
+ 
+fi:
+ 
+sp:
+ 
+end:
+ 
+ 
+rfEkhad:=proc(a,b):
+ (a+b-1)!/(a-1)!:
+end:
+ 
+ 
+ 
+RootOf1:=proc(f,x)
+local kv,kvi,i:
+kv:=[solve(f=0,x)]:
+kvi:={}:
+for i from 1 to nops(kv) do
+ 
+  if type(kv[i],integer) and kv[i]>0 then
+   kvi:=kvi union {kv[i]}
+  fi:
+ 
+od:
+ 
+RETURN(kvi):
+ 
+end:
+ 
+pashetEkhad:=proc(p,N)
+local i,gu1,gu,p1:
+p1:=normal(p):
+gu1:=denom(p1):
+p1:=numer(p1):
+p1:=expand(p1):
+gu:=0:
+for i from 0 to degree(p,N) do
+gu:=gu+factor(coeff(p1,N,i))*N^i:
+od:
+RETURN(gu/gu1):
+end:
+ 
+ 
+ 
+hafel:=proc(POL,SUMMAND,ope,n,N)
+local i,FAC,degg,bi,rat,POL1,SUMMAND1,zub:
+degg:=degree(ope,N):
+FAC:=0:
+ 
+for i from 0 to degg do
+ bi:=coeff(ope,N,i):
+ rat:=simplify1(SUMMAND,n,i):
+ FAC:=FAC+bi*subs(n=n+i,POL)*rat:
+ FAC:=normal(FAC):
+od:
+ 
+POL1:=numer(FAC):
+zub:=denom(FAC):
+SUMMAND1:=SUMMAND/zub:
+RETURN(POL1,SUMMAND1,zub):
+end:
+ 
+ctold:=proc(SUMMAND,ORDER,k,n,N)
+local gu,i,ope,POL1,SUMMAND1,yakhas,P,Q,R,j,res1,kv,hakhi,g,
+A1, B1,  P1, SDZ, SDZ1,
+degg, eq, fu, gugu, i1, ia1, k1, kvutsa, l1, l2, meka1, mekb1, mumu, 
+va1, va2,ope1,denFAC,ope1a:
+ 
+if nargs<>5 then
+ERROR(`Syntax: ct(SUMMAND,ORDER,summation_variable,auxiliary_var, Shift_n)`):
+fi:
+ 
+ 
+ope:=0:
+ 
+for i from 0 to ORDER do
+ ope:=ope+bpc[i]*N^i:
+od: 
+gu:=hafel(1,convert(SUMMAND,factorial),ope,n,N):
+POL1:=gu[1]:
+SUMMAND1:=gu[2]:
+denFAC:=gu[3]:
+yakhas:=simplify1(SUMMAND1,k,-1):
+yakhas:=normal(1/yakhas):
+ 
+print(`yakhas is`,yakhas):
+P1:=1:
+Q:=numer(yakhas):
+R:=denom(yakhas):
+res1:=resultant(Q,subs(k=k+j,R),k):
+print(`res1 is`,res1):
+kv:=RootOf1(res1,j):
+ 
+ 
+ print(`kv is`,kv):
+while nops(kv) > 0 do
+ hakhi:=max(op(kv)):
+ g:=gcd(Q,subs(k=k+hakhi,R)):
+ Q:=normal(Q/g):
+ R:=normal(R/subs(k=k-hakhi,g)):
+ P1:=P1*product(subs(k=k-i1,g),i1=0..hakhi-1):
+ res1:=resultant(Q,subs(k=k+j,R),k):
+ kv:=RootOf1(res1,j):
+od:
+ 
+P:=POL1*P1:
+ 
+A1:=subs(k=k+1,Q)+R:
+A1:=expand(A1):
+B1:=subs(k=k+1,Q)-R:
+B1:=expand(B1):
+l1:=degree(A1,k):
+if B1=0 then
+l2:=-100:
+else
+l2:=degree(B1,k):
+fi:
+meka1:=coeff(A1,k,l1):
+mekb1:=coeff(B1,k,l2):
+if l1<=l2 
+then
+k1:=degree(P,k)-l2:
+elif l2=l1-1 
+then
+ mumu:= (-2)*mekb1/meka1:
+  if type(mumu,integer) 
+  then
+   k1:=max(mumu, degree(P,k)-l1+1):
+  else
+   k1:=degree(P,k)-l1+1:
+  fi:
+elif l2 < l1-1
+then
+ k1:= max( 0, degree(P,k)-l1+1 ):
+fi:
+fu:=0:
+ 
+ 
+print(`k1 is`,k1):
+if k1 < 0 then
+RETURN(0):
+fi:
+if k1 >= 0 then
+for ia1 from 0 to k1 do
+fu:=fu+apc[ia1]*k^ia1:
+od:
+gugu:=subs(k=k+1,Q)*fu-R*subs(k=k-1,fu)-P:
+gugu:=expand(gugu):
+degg:=degree(gugu,k):
+ 
+for ia1 from 0 to degg do
+eq[ia1+1]:=coeff(gugu,k,ia1)=0:
+od:
+for ia1 from 0 to k1 do
+va1[ia1+1]:=apc[ia1]:
+od:
+for ia1 from 0 to ORDER do
+va2[ia1+1]:=bpc[ia1]:
+od:
+eq:=convert(eq,set):
+va1:=convert(va1,set):
+va2:=convert(va2,set):
+va1:=va1 union va2:
+va1:=solve1(eq,va1):
+kvutsa:={va1}:
+fu:=subs(va1,fu):
+ope:=subs(va1,ope):
+fi:
+ 
+ 
+ 
+if ope=0 or kvutsa={} or fu=0 then
+RETURN(0):
+fi:
+gu:={}:
+for i1 from 0 to k1 do
+gu:=gu union {apc[i1]=1}:
+od:
+for i1 from 0 to ORDER do
+gu:=gu union {bpc[i1]=1}:
+od:
+fu:=subs(gu,fu):
+ope:=subs(gu,ope):
+ 
+ope:=pashetEkhad(ope,N):
+ope1:=ope*denom(ope):
+ 
+SDZ:=denom(ope)*subs(k=k+1,Q)*fu/P1/denFAC :
+SDZ1:=subs(k=k-1,SDZ)*simplify1(convert(SUMMAND,factorial),k,-1):
+SDZ1:=simplify(SDZ1):
+ 
+ope1a:=0:
+for i from 0 to degree(ope1,N) do
+ope1a:=ope1a+sort(coeff(ope1,N,i)*N^i):
+od:
+ 
+RETURN(ope1a,SDZ1):
+end:
+ 
+ 
+ 
+ 
+ct:=proc(SUMMAND,ORDER,k,n,N)
+local gu,i,ope,POL1,SUMMAND1,yakhas,P,Q,R,j,res1,kv,hakhi,g,
+A1, B1,  P1, SDZ, SDZ1,apc,
+degg, eq, fu, gugu, i1, ia1, k1, kvutsa, l1, l2, meka1, mekb1, mumu, 
+va1, va2,ope1,denFAC,ope1a:
+ 
+if nargs<>5 then
+ERROR(`Syntax: ct(SUMMAND,ORDER,summation_variable,auxiliary_var, Shift_n)`):
+fi:
+ 
+if tovu(convert(SUMMAND,factorial),k,n)=0 then
+ERROR(`The summand can be separated into f(`,k,`)g(`,n,`)`): 
+fi:
+ 
+ope:=0:
+ 
+for i from 0 to ORDER do
+ ope:=ope+bpc[i]*N^i:
+od:
+ 
+gu:=hafel(1,convert(SUMMAND,factorial),ope,n,N):
+POL1:=gu[1]:
+SUMMAND1:=gu[2]:
+denFAC:=gu[3]:
+yakhas:=simplify1(SUMMAND1,k,-1):
+yakhas:=normal(1/yakhas):
+ 
+P1:=1:
+Q:=numer(yakhas):
+R:=denom(yakhas):
+ 
+ 
+res1:=findgQR(Q,R,k,100):
+ 
+while res1[2]<>0 do
+ g:=res1[1]:
+ hakhi:=res1[2]:
+ Q:=normal(Q/g):
+ R:=normal(R/subs(k=k-hakhi,g)):
+ P1:=P1*product(subs(k=k-i1,g),i1=0..hakhi-1):
+ res1:=findgQR(Q,R,k,100):
+od:
+ 
+P:=POL1*P1:
+ 
+A1:=subs(k=k+1,Q)+R:
+A1:=expand(A1):
+B1:=subs(k=k+1,Q)-R:
+B1:=expand(B1):
+l1:=degree(A1,k):
+if B1=0 then
+l2:=-100:
+else
+l2:=degree(B1,k):
+fi:
+meka1:=coeff(A1,k,l1):
+mekb1:=coeff(B1,k,l2):
+if l1<=l2 
+then
+k1:=degree(P,k)-l2:
+elif l2=l1-1 
+then
+ mumu:= (-2)*mekb1/meka1:
+  if type(mumu,integer) 
+  then
+   k1:=max(mumu, degree(P,k)-l1+1):
+  else
+   k1:=degree(P,k)-l1+1:
+  fi:
+elif l2 < l1-1
+then
+ k1:= max( 0, degree(P,k)-l1+1 ):
+fi:
+fu:=0:
+ 
+ 
+if k1 < 0 then
+RETURN(0):
+fi:
+if k1 >= 0 then
+for ia1 from 0 to k1 do
+fu:=fu+apc[ia1]*k^ia1:
+od:
+gugu:=subs(k=k+1,Q)*fu-R*subs(k=k-1,fu)-P:
+gugu:=expand(gugu):
+degg:=degree(gugu,k):
+ 
+for ia1 from 0 to degg do
+eq[ia1+1]:=coeff(gugu,k,ia1)=0:
+od:
+for ia1 from 0 to k1 do
+va1[ia1+1]:=apc[ia1]:
+od:
+for ia1 from 0 to ORDER do
+va2[ia1+1]:=bpc[ia1]:
+od:
+eq:=convert(eq,set):
+va1:=convert(va1,set):
+va2:=convert(va2,set):
+va1:=va1 union va2:
+va1:=solve1(eq,va1):
+kvutsa:={va1}:
+fu:=subs(va1,fu):
+ope:=subs(va1,ope):
+fi:
+ 
+ 
+ 
+if ope=0 or kvutsa={} or fu=0 then
+RETURN(0):
+fi:
+gu:={}:
+for i1 from 0 to k1 do
+gu:=gu union {apc[i1]=1}:
+od:
+for i1 from 0 to ORDER do
+gu:=gu union {bpc[i1]=1}:
+od:
+fu:=subs(gu,fu):
+ope:=subs(gu,ope):
+ 
+ope:=pashetEkhad(ope,N):
+ope1:=ope*denom(ope):
+ 
+SDZ:=denom(ope)*subs(k=k+1,Q)*fu/P1/denFAC :
+SDZ1:=subs(k=k-1,SDZ)*simplify1(convert(SUMMAND,factorial),k,-1):
+SDZ1:=simplify(SDZ1):
+ 
+ope1a:=0:
+for i from 0 to degree(ope1,N) do
+ope1a:=ope1a+sort(coeff(ope1,N,i)*N^i):
+od:
+ 
+RETURN(ope1a,SDZ1):
+end:
+ 
+ 
+ 
+cttry:=proc(SUMMAND,ORDER,k,n,resh,N)
+local gu,i,ope,POL1,SUMMAND1,yakhas,P,Q,R,j,res1,kv,hakhi,g,
+A1, B1,  P1, 
+degg, eq, fu, gugu, i1, ia1, k1, kvutsa, l1, l2, meka1, mekb1, mumu, 
+va1, va2,eqg:
+ 
+if nargs<>6 then
+ERROR(`The syntax is cttry(term,ORDER,sum_variable,aux_var,para_list,Shift)`):
+fi:
+ 
+if tovu(convert(SUMMAND,factorial),k,n)=0 then
+ERROR(`The summand can be separated into f(`,k,`)g(`,n,`)`): 
+fi:
+ 
+ope:=0:
+ 
+for i from 0 to ORDER do
+ ope:=ope+bpc[i]*N^i:
+od:
+ 
+gu:=hafel(1,convert(SUMMAND,factorial),ope,n,N):
+POL1:=gu[1]:
+SUMMAND1:=gu[2]:
+yakhas:=simplify1(SUMMAND1,k,-1):
+yakhas:=normal(1/yakhas):
+ 
+P1:=1:
+Q:=numer(yakhas):
+R:=denom(yakhas):
+ 
+res1:=findgQR(Q,R,k,100):
+ 
+while res1[2]<>0 do
+ g:=res1[1]:
+ hakhi:=res1[2]:
+ Q:=normal(Q/g):
+ R:=normal(R/subs(k=k-hakhi,g)):
+ P1:=P1*product(subs(k=k-i1,g),i1=0..hakhi-1):
+ res1:=findgQR(Q,R,k,100):
+od:
+ 
+P:=POL1*P1:
+ 
+A1:=subs(k=k+1,Q)+R:
+A1:=expand(A1):
+B1:=subs(k=k+1,Q)-R:
+B1:=expand(B1):
+l1:=degree(A1,k):
+if B1=0 then
+l2:=-100:
+else
+l2:=degree(B1,k):
+fi:
+meka1:=coeff(A1,k,l1):
+mekb1:=coeff(B1,k,l2):
+if l1<=l2 
+then
+k1:=degree(P,k)-l2:
+elif l2=l1-1 
+then
+ mumu:= (-2)*mekb1/meka1:
+  if type(mumu,integer) 
+  then
+   k1:=max(mumu, degree(P,k)-l1+1):
+  else
+   k1:=degree(P,k)-l1+1:
+  fi:
+elif l2 < l1-1
+then
+ k1:= max( 0, degree(P,k)-l1+1 ):
+fi:
+fu:=0:
+ 
+ 
+if k1 < 0 then
+RETURN(0):
+fi:
+if k1 >= 0 then
+for ia1 from 0 to k1 do
+fu:=fu+apc[ia1]*k^ia1:
+od:
+gugu:=subs(k=k+1,Q)*fu-R*subs(k=k-1,fu)-P:
+gugu:=expand(gugu):
+degg:=degree(gugu,k):
+for ia1 from 0 to degg do
+eq[ia1+1]:=coeff(gugu,k,ia1)=0:
+od:
+for ia1 from 0 to k1 do
+va1[ia1+1]:=apc[ia1]:
+od:
+for ia1 from 0 to ORDER do
+va2[ia1+1]:=bpc[ia1]:
+od:
+eq:=convert(eq,set):
+va1:=convert(va1,set):
+va2:=convert(va2,set):
+va1:=va1 union va2:
+eqg:=subs(n=1/2,eq):
+ 
+for i from 1 to nops(resh) do
+ eqg:=subs(op(i,resh)=i^2+3,eqg):
+od:
+ 
+va1:=solve1(eq,va1):
+kvutsa:={va1}:
+fu:=subs(va1,fu):
+ope:=subs(va1,ope):
+fi:
+ 
+ 
+ 
+if ope=0 or kvutsa={} or fu=0 then
+RETURN(0):
+ else
+  RETURN(1):
+fi:
+ 
+end:
+ 
+ 
+paper:=proc(SUMMAND,k,n,N,ope1,SDZ1,NAME,REF)
+local SHEM,IDENTITY,RECURRENCE:
+ 
+if degree(ope1,N)=1 then
+SHEM:=IDENTITY:
+else
+SHEM:=RECURRENCE:
+fi:
+lprint(``):
+lprint(`A PROOF OF THE`,NAME,SHEM):
+lprint(``):
+lprint(`By Shalosh B. Ekhad, Temple University, ekhad@math.temple.edu`):
+lprint(``):
+lprint(`I will give a short proof of the following result(`,REF,`).`):
+lprint(``):
+if degree(ope1,N)=1 then
+lprint(`(Note that since the recurrence below is first order, this`):
+lprint(`means that the sum`, SUM(n), `has closed form,and it is`):
+lprint(`easily seen to be equivalent.)`):
+lprint(``):
+fi:
+lprint(`Theorem:Let`, F(n,k), `be given by`):
+lprint(``):
+print(SUMMAND):
+lprint(``):
+lprint(`and let`, SUM(n),`be the sum of`, F(n,k),` with`):
+lprint(`respect to`, k,`.`):
+lprint(``):
+lprint(SUM(n),` satisfies the following linear recurrence equation`):
+lprint(``):
+print(yafe(ope1,N,n,SUM(n))):
+print(`=0.`):
+lprint(``):
+lprint(`PROOF: We cleverly construct`, G(n,k),`:=`):
+lprint(``):
+print(SDZ1*SUMMAND):
+lprint(`with the motive that`):
+lprint(``):
+print(yafe(ope1,N,n,F(n,k))):
+lprint(`=`,G(n,k+1)-G(n,k), `(check!)`):
+lprint(``):
+lprint(`and the theorem follows upon summing with respect to`, k,`.QED.`):
+end:
+ 
+ 
+ 
+paper3:=proc(SUMMAND,k,n,N,ope1,SDZ1):
+ 
+lprint(``):
+lprint(`A PROOF OF A RECURRENCE`):
+lprint(``):
+lprint(`By Shalosh B. Ekhad, Temple University, ekhad@math.temple.edu`):
+lprint(``):
+ 
+lprint(`Theorem:Let`, F(n,k), `be given by`):
+lprint(``):
+print(SUMMAND):
+lprint(``):
+lprint(`and let`, SUM(n),`be the sum of`, F(n,k),` with`):
+lprint(`respect to`, k,`.`):
+lprint(``):
+lprint(SUM(n),` satisfies the following linear recurrence equation`):
+lprint(``):
+print(yafe(ope1,N,n,SUM(n))):
+print(`=0.`):
+lprint(``):
+lprint(`PROOF: We cleverly construct`, G(n,k),`:=`):
+lprint(``):
+print(SDZ1*SUMMAND):
+lprint(`with the motive that`):
+lprint(``):
+print(yafe(ope1,N,n,F(n,k))):
+lprint(`=`,G(n,k+1)-G(n,k), `(check!)`):
+lprint(``):
+lprint(`and the theorem follows upon summing with respect to`, k,`.QED.`):
+end:
+ 
+ 
+paperc:=proc(INTEGRAND,y,x,D,ope1,SDZ1):
+lprint(``):
+lprint(``):
+lprint(`A PROOF OF A DIFFERENTIAL EQUATION SATISFIED BY AN INTEGRAL`):
+lprint(``):
+lprint(`By Shalosh B. Ekhad, Temple University, ekhad@math.temple.edu`):
+lprint(``):
+lprint(`I will give a short proof of the following result.`):
+lprint(``):
+ 
+lprint(`Theorem:Let`, F(x,y), `be given by`):
+lprint(``):
+print(INTEGRAND):
+lprint(``):
+lprint(`and let`, INTEGRAL(x),`be the integral of`, F(x,y),` with`):
+lprint(`respect to`, y,`.`):
+lprint(``):
+lprint(INTEGRAL(x),` satisfies the following linear differential equation`):
+lprint(``):
+print(yafec(ope1,D,x,INTEGRAL(x))):
+print(`=0.`):
+lprint(``):
+lprint(`PROOF: We cleverly construct`, G(x,y),`:=`):
+lprint(``):
+print(SDZ1*INTEGRAND):
+lprint(`with the motive that`):
+lprint(``):
+print(yafec(ope1,D,x,F(x,y))):
+lprint(`=`,diff(G(x,y),y), `(check!)`):
+lprint(``):
+lprint(`and the theorem follows upon integrating with respect to`, y,`.`):
+end:
+ 
+paperd:=proc(INTEGRAND,x,n,N,ope1,SDZ1):
+lprint(``):
+lprint(`A PROOF OF A LINEAR RECURRENCE SATISFIED BY AN INTEGRAL`):
+lprint(``):
+lprint(`By Shalosh B. Ekhad, Temple University, ekhad@math.temple.edu`):
+lprint(``):
+lprint(`I will give a short proof of the following result.`):
+lprint(``):
+ 
+lprint(`Theorem:Let`, F(n,x), `be given by`):
+lprint(``):
+print(INTEGRAND):
+lprint(``):
+lprint(`and let`, INTEGRAL(n),`be the integral of`, F(n,x),` with`):
+lprint(`respect to`, x,`.`):
+lprint(``):
+lprint(INTEGRAL(n),` satisfies the following linear recurrence equation`):
+lprint(``):
+print(yafe(ope1,N,n,INTEGRAL(n))):
+print(`=0.`):
+lprint(``):
+lprint(`PROOF: We cleverly construct`, G(n,x),`:=`):
+lprint(``):
+print(SDZ1*INTEGRAND):
+lprint(`with the motive that`):
+lprint(``):
+print(yafe(ope1,N,n,F(n,x))):
+lprint(`=`,diff(G(n,x),x)):
+lprint(``):
+lprint(`and the theorem follows upon integrating with respect to`, x,`.QED.`):
+end:
+ 
+ 
+paperc:=proc(INTEGRAND,y,x,D,ope1,SDZ1):
+lprint(`A PROOF OF A DIFFERENTIAL EQUATION SATISFIED BY AN INTEGRAL`):
+lprint(``):
+lprint(`By Shalosh B. Ekhad, Temple University, ekhad@math.temple.edu`):
+lprint(``):
+lprint(`I will give a short proof of the following result.`):
+lprint(``):
+ 
+lprint(`Theorem:Let`, F(x,y), `be given by`):
+lprint(``):
+print(INTEGRAND):
+lprint(``):
+lprint(`and let`, INTEGRAL(x),`be the integral of`, F(x,y),` with`):
+lprint(`respect to`, y,`.`):
+lprint(``):
+lprint(INTEGRAL(x),` satisfies the following linear differential equation`):
+lprint(``):
+print(yafec(ope1,D,x,INTEGRAL(x))):
+print(`=0.`):
+lprint(``):
+lprint(`PROOF: We cleverly construct`, G(x,y),`:=`):
+lprint(``):
+print(SDZ1*INTEGRAND):
+lprint(`with the motive that`):
+lprint(``):
+print(yafec(ope1,D,x,F(x,y))):
+lprint(`=`,diff(G(x,y),y), `(check!)`):
+lprint(``):
+lprint(`and the theorem follows upon integrating with respect to`, y,`.QED.`):
+end:
+ 
+ 
+ 
+zeil4:=proc(SUMMAND,k,n,N)
+local ORDER,MAXORDER,gu,gu1,resh:
+ 
+ 
+ MAXORDER:=6:
+ 
+  resh:=[]:
+ 
+ 
+if simplify1(SUMMAND,n,1)=1 then
+ERROR(`Summand does not depend on`,n,` hence the sum is identically constant`):
+fi:
+for ORDER from 0 to MAXORDER do
+ gu1:=cttry(SUMMAND,ORDER,k,n,resh,N):
+ if gu1=1 then
+  gu:=ct(SUMMAND,ORDER,k,n,N):
+ 
+   if gu<>0 then
+     RETURN(gu):
+   fi:
+ fi:
+od:
+
+RETURN(FAIL): 
+ 
+end:
+ 
+ 
+ 
+ 
+zeil5:=proc(SUMMAND,k,n,N,MAXORDER)
+local ORDER,gu,gu1,resh:
+ 
+resh:=[]:
+ 
+if simplify1(SUMMAND,n,1)=1 then
+ERROR(`Summand does not depend on`,n,` hence the sum is identically constant`):
+fi:
+for ORDER from 0 to MAXORDER do
+ gu1:=cttry(SUMMAND,ORDER,k,n,resh,N):
+ if gu1=1 then
+  gu:=ct(SUMMAND,ORDER,k,n,N):
+ 
+   if gu<>0 then
+     RETURN(gu):
+   fi:
+ fi:
+od:
+ 
+ERROR(`No recurrence of order<=`,MAXORDER,`was found`):
+ 
+end:
+ 
+ 
+ 
+ 
+zeil6:=proc(SUMMAND,k,n,N,MAXORDER,resh)
+local ORDER,gu,gu1:
+ 
+ 
+if simplify1(SUMMAND,n,1)=1 then
+ERROR(`Summand does not depend on`,n,` hence the sum is identically constant`):
+fi:
+for ORDER from 0 to MAXORDER do
+ gu1:=cttry(SUMMAND,ORDER,k,n,resh,N):
+ if gu1=1 then
+  gu:=ct(SUMMAND,ORDER,k,n,N):
+ 
+   if gu<>0 then
+     RETURN(gu):
+   fi:
+ fi:
+od:
+ 
+ERROR(`No recurrence of order<=`,MAXORDER,`was found`):
+ 
+end:
+ 
+ 
+zeil:=proc():
+ 
+if nargs=4 then
+ zeil4(args):
+elif nargs=5 then
+ zeil5(args):
+elif nargs=6 then
+ zeil6(args):
+else
+  print(`zeil(SUMMAND,k,n,N) or zeil(SUMMAND,k,n,N,MAXORDER) or`):
+  ERROR(`zeil(SUMMAND,k,n,N,MAXORDER,param_list)`):
+fi:
+ 
+ 
+ 
+end:
+ 
+ 
+ 
+ 
+ 
+zeillim:=proc(SUMMAND,k,n,N,alpha,beta)
+local ope,CERT,lu,k1,i,gu,lu1,lu2:
+ 
+gu:=Zeillim(SUMMAND,k,n,N,alpha+1,beta+1):
+ope:=gu[1]:
+CERT:=gu[2]:
+lu:=gu[3]: 
+lu1:=subs(k=alpha,SUMMAND)+subs(k=n-beta,SUMMAND):
+lu1:=simplify(lu1):
+lu1:=normal(lu1):
+lu2:=0:
+for i from 0 to degree(ope,N) do
+   lu2:=lu2+coeff(ope,N,i)*simplify(subs(n=n+i,lu1)):
+ od:
+ lu2:=normal(lu2):
+ope,CERT,normal(expand(normal(simplify(expand(normal(lu+lu2)))))):
+ 
+end:
+ 
+Zeillim:=proc(SUMMAND,k,n,N,alpha,beta)
+local ope,CERT,lu,k1,i,gu:
+ 
+gu:=zeil(SUMMAND,k,n,N):
+ope:=gu[1]:
+CERT:=gu[2]:
+ 
+lu:=simplify(subs(k=n-beta+1,CERT)*subs(k=n-beta+1,SUMMAND))
+-simplify(subs(k=alpha,CERT)*subs(k=alpha,SUMMAND)):
+ 
+for i from 0 to degree(ope,N) do
+ for k1 from 1 to i do
+   lu:=lu+coeff(ope,N,i)*simplify(subs({n=n+i,k=n-beta+k1},SUMMAND)):
+ od:
+od:
+ 
+gu,normal(expand(lu)):
+ 
+end:
+ 
+ 
+ 
+zeilpap3:=proc(SUMMAND,k,n)
+local  SDZ1, gu, ope1,N:
+ 
+gu:=zeil4(SUMMAND,k,n,N):
+ope1:=gu[1]:
+SDZ1:=gu[2]:
+paper3(SUMMAND,k,n,N,ope1,SDZ1):
+end:
+ 
+ 
+ 
+ 
+zeilpap5:=proc(SUMMAND,k,n,NAME,REF)
+local SDZ1, gu, ope1,N:
+ 
+gu:=zeil4(SUMMAND,k,n,N):
+ope1:=gu[1]:
+SDZ1:=gu[2]:
+paper(SUMMAND,k,n,N,ope1,SDZ1,NAME,REF):
+end:
+ 
+ zeilpap:=proc()
+ 
+if nargs=5 then
+zeilpap5(args):
+elif nargs=3 then
+zeilpap3(args):
+else
+ ERROR(`zeilpap(SUMMAND,k,n,NAME,REF) or  zeilpap(SUMMAND,k,n)`):
+fi:
+end:
+ 
+ 
+ 
+ 
+AZpapc:=proc(INTEGRAND,y,x)
+local D,SDZ1,gu,ope1:
+gu:=AZc(INTEGRAND,y,x,D):
+ope1:=gu[1]:
+SDZ1:=gu[2]:
+paperc(INTEGRAND,y,x,D,ope1,SDZ1):
+end:
+ 
+ 
+ 
+ 
+AZpapd:=proc(INTEGRAND,x,n)
+local D,SDZ1, gu, ope1:
+gu:=AZd(INTEGRAND,x,n,D):
+ope1:=gu[1]:
+SDZ1:=gu[2]:
+paperd(INTEGRAND,x,n,D,ope1,SDZ1):
+end:
+ 
+ 
+ 
+ 
+ 
+goremd:=proc(N,ORDER)
+local i, gu:
+gu:=0:
+for i from 0 to ORDER do
+gu:=gu+(bpc[i])*N^i:
+od:
+RETURN(gu):
+end:
+ 
+goremc:=proc(D,ORDER)
+local i,gu:
+gu:=0:
+for i from 0 to ORDER do
+gu:=gu+(bpc[i])*D^i:
+od:
+RETURN(gu):
+end:
+ 
+gzor:=proc(f,x,n)
+local i,gu:
+gu:=f:
+for i from 1 to n do
+gu:=diff(gu,x):
+od:
+RETURN(gu):
+end:
+ 
+gzor1:=proc(a,D,x)
+local i,gu:
+gu:=0:
+for i from 0 to degree(a,D) do
+gu:=gu+diff(coeff(a,D,i),x)*D^i+coeff(a,D,i)*D^(i+1):
+od:
+end:
+ 
+pashetd:=proc(p,N)
+local gu,p1,mekh,i:
+p1:=normal(p):
+mekh:=denom(p1):
+p1:=numer(p1):
+p1:=expand(p1):
+gu:=0:
+for i from 0 to degree(p1,N) do
+gu:=gu+factor(coeff(p1,N,i))*N^i:
+od:
+RETURN(gu,mekh):
+end:
+ 
+pashetc:=proc(p,D)
+local gu,p1,i,mekh:
+p1:=normal(p):
+mekh:=denom(p1):
+p1:=numer(p1):
+p1:=expand(p1):
+gu:=0:
+for i from 0 to degree(p1,D) do
+gu:=gu+factor(coeff(p1,D,i))*D^i:
+od:
+RETURN(gu,mekh):
+end:
+ 
+ 
+AZd:= proc(A,y,n,N)
+local ORDER,gu,KAMA:
+KAMA:=8:
+ 
+for ORDER from 0 to KAMA do
+gu:=duisd(A,ORDER,y,n,N):
+if gu<>0 then
+ RETURN(gu):
+fi:
+od:
+0:
+end:
+ 
+ 
+AZc:=proc(A,y,x,D)
+local ORDER,gu,KAMA:
+KAMA:=8:
+ 
+for ORDER from 0 to KAMA do
+gu:=duisc(A,ORDER,y,x,D):
+if gu<>0 then
+ RETURN(gu):
+fi:
+od:
+0:
+end:
+ 
+ 
+duisd:= proc(A,ORDER,y,n,N)
+local gorem, conj, yakhas,lu1a,LU1,P,Q,R,S,j1,g,Q1,Q2,l1,l2,mumu,
+mekb1,fu,meka1,k1,gugu,eq,ia1,va1,va2,degg,shad,KAMA,i1:
+KAMA:=10:
+gorem:=goremd(N,ORDER):
+ 
+ 
+conj:=gorem:
+yakhas:=0:
+ 
+for i1 from 0 to degree(conj,N) do
+ 
+yakhas:=yakhas+coeff(conj,N,i1)*simplify(subs(n=n+i1,A)/A):
+od:
+ 
+lu1a:=yakhas:
+LU1:=numer(yakhas):
+yakhas:=1/denom(yakhas):
+yakhas:=normal(diff(yakhas,y)/yakhas+diff(A,y)/A):
+P:=LU1:
+Q:=numer(yakhas):
+R:=denom(yakhas):
+j1:=0:
+while j1 <= KAMA do
+g:=gcd(R,Q-j1*diff(R,y)):
+if g <> 1 then
+Q2:=(Q-j1*diff(R,y))/g:
+R:=normal(R/g):
+Q:=normal(Q2+j1*diff(R,y)):
+P:=P*g^j1:
+j1:=-1:
+fi:
+j1:=j1+1:
+od:
+P:=expand(P):
+R:=expand(R):
+Q:=expand(Q):
+Q1:=Q+diff(R,y):
+Q1:=expand(Q1):
+l1:=degree(R,y):
+l2:=degree(Q1,y):
+meka1:=coeff(R,y,l1):
+mekb1:=coeff(Q1,y,l2):
+if l1-1 <>l2 
+then
+k1:=degree(P,y)-max(l1-1,l2):
+else
+ mumu:= -mekb1/meka1:
+  if type(mumu,integer) and mumu > 0 
+  then
+   k1:=max(mumu, degree(P,y)-l2):
+  else
+   k1:=degree(P,y)-l2:
+  fi:
+fi:
+fu:=0:
+if k1 < 0 then
+RETURN(0):
+fi:
+for ia1 from 0 to k1 do
+fu:=fu+apc[ia1]*y^ia1:
+od:
+gugu:=Q1*fu+R*diff(fu,y)-P:
+gugu:=expand(gugu):
+degg:=degree(gugu,y):
+for ia1 from 0 to degg do
+eq[ia1+1]:=coeff(gugu,y,ia1)=0:
+od:
+for ia1 from 0 to k1 do
+va1[ia1+1]:=apc[ia1]:
+od:
+for ia1 from 0 to ORDER do
+va2[ia1+1]:=bpc[ia1]:
+od:
+eq:=convert(eq,set):
+va1:=convert(va1,set):
+va2:=convert(va2,set):
+va1:=va1 union va2 :
+va1:=solve1(eq,va1):
+fu:=subs(va1,fu):
+gorem:=subs(va1,gorem):
+if fu=0 and gorem=0 then
+ RETURN(0):
+fi:
+for ia1 from 0 to k1 do
+gorem:=subs(apc[ia1]=1,gorem):
+od:
+for ia1 from 0 to ORDER do
+gorem:=subs(bpc[ia1]=1,gorem):
+od:
+fu:=normal(fu):
+ 
+ 
+shad:=pashetd(gorem,N):
+S:=lu1a*R*fu*shad[2]/P:
+S:=subs(va1,S):
+S:=normal(S):
+S:=factor(S):
+for ia1 from 0 to k1 do
+S:=subs(apc[ia1]=1,S):
+od:
+for ia1 from 0 to ORDER do
+S:=subs(bpc[ia1]=1,S):
+od:
+ 
+RETURN(shad[1],S):
+end:
+ 
+ 
+duisc:= proc(A,ORDER,y,x,D)
+local KAMA,gorem,conj, yakhas,lu1a,LU1,P,Q,R,S,j1,g,Q1,Q2,l1,l2,mumu,
+mekb1,fu,meka1,k1,gugu,eq,ia1,va1,va2,degg,i,shad:
+ 
+KAMA:=10:
+gorem:=goremc(D,ORDER):
+ 
+conj:=gorem:
+yakhas:=0:
+ 
+for i from 0 to degree(conj,D) do
+yakhas:=yakhas+normal(coeff(conj,D,i)*gzor(A,x,i)/A):
+yakhas:=normal(yakhas):
+od:
+ 
+lu1a:=yakhas:
+LU1:=numer(yakhas):
+yakhas:=1/denom(yakhas):
+yakhas:=normal(diff(yakhas,y)/yakhas+diff(A,y)/A):
+P:=LU1:
+Q:=numer(yakhas):
+R:=denom(yakhas):
+j1:=0:
+while j1 <= KAMA do
+g:=gcd(R,Q-j1*diff(R,y)):
+if g <> 1 then
+Q2:=(Q-j1*diff(R,y))/g:
+R:=normal(R/g):
+Q:=normal(Q2+j1*diff(R,y)):
+P:=P*g^j1:
+j1:=-1:
+fi:
+j1:=j1+1:
+od:
+P:=expand(P):
+R:=expand(R):
+Q:=expand(Q):
+Q1:=Q+diff(R,y):
+Q1:=expand(Q1):
+l1:=degree(R,y):
+l2:=degree(Q1,y):
+meka1:=coeff(R,y,l1):
+mekb1:=coeff(Q1,y,l2):
+if l1-1 <>l2 
+then
+k1:=degree(P,y)-max(l1-1,l2):
+else
+ mumu:= -mekb1/meka1:
+  if type(mumu,integer) and mumu > 0 
+  then
+   k1:=max(mumu, degree(P,y)-l2):
+  else
+   k1:=degree(P,y)-l2:
+  fi:
+fi:
+fu:=0:
+if k1 < 0 then
+RETURN(0):
+fi:
+for ia1 from 0 to k1 do
+fu:=fu+apc[ia1]*y^ia1:
+od:
+gugu:=Q1*fu+R*diff(fu,y)-P:
+gugu:=expand(gugu):
+degg:=degree(gugu,y):
+for ia1 from 0 to degg do
+eq[ia1+1]:=coeff(gugu,y,ia1)=0:
+od:
+for ia1 from 0 to k1 do
+va1[ia1+1]:=apc[ia1]:
+od:
+for ia1 from 0 to ORDER do
+va2[ia1+1]:=bpc[ia1]:
+od:
+eq:=convert(eq,set):
+va1:=convert(va1,set):
+va2:=convert(va2,set):
+va1:=va1 union va2 :
+va1:=solve1(eq,va1):
+fu:=subs(va1,fu):
+gorem:=subs(va1,gorem):
+if fu=0 and gorem=0 then
+ RETURN(0):
+fi:
+for ia1 from 0 to k1 do
+gorem:=subs(apc[ia1]=1,gorem):
+od:
+for ia1 from 0 to ORDER do
+gorem:=subs(bpc[ia1]=1,gorem):
+od:
+fu:=normal(fu):
+shad:=pashetc(gorem,D):
+S:=lu1a*R*fu*shad[2]/P:
+S:=subs(va1,S):
+S:=normal(S):
+S:=factor(S):
+for ia1 from 0 to k1 do
+S:=subs(apc[ia1]=1,S):
+od:
+for ia1 from 0 to ORDER do
+S:=subs(bpc[ia1]=1,S):
+od:
+shad[1],S:
+end:
+ 
+ 
+ 
+bdokcertc:=proc(A,y,x,D,ope,S)
+local gu,i:
+gu:=0:
+ 
+for i from 0 to degree(ope,D) do
+gu:=gu+coeff(ope,D,i)*simplify(gzor(A,x,i)/A):
+gu:=normal(gu):
+od:
+ 
+gu:=gu/simplify(diff(S*A,y)/A):
+normal(gu);
+end:
+ 
+ 
+bdokcertd:=proc(A,y,n,N,ope,S)
+local gu,i:
+gu:=0:
+ 
+for i from 0 to degree(ope,N) do
+gu:=gu+coeff(ope,N,i)*simplify( subs(n=n+i,A)/A):
+gu:=normal(gu):
+od:
+ 
+gu:=gu/simplify(diff(S*A,y)/A):
+normal(gu);
+end:
+ 
+ 
+ 
+bdokcto:=proc(SUMMAND1,ORDER,k,n,N)
+local mu,gu,i,G1,ope,lu,SUMMAND:
+ 
+SUMMAND:=convert(SUMMAND1,factorial):
+mu:=ct(SUMMAND,ORDER,k,n,N):
+ 
+if mu=0 then
+ RETURN(0):
+fi:
+ 
+ope:=mu[1]:
+G1:=mu[2]*SUMMAND:
+gu:=0:
+ 
+for i from 0 to degree(ope,N) do
+gu:=gu+coeff(ope,N,i)*simplify( subs(n=n+i,SUMMAND)/SUMMAND):
+gu:=normal(gu):
+od:
+ 
+lu:=simplify(subs(k=k+1,G1)/SUMMAND)-mu[2]:
+lu:=normal(lu):
+normal(gu/lu);
+end:
+ 
+ 
+ 
+ 
+bdokct:=proc(SUMMAND1,ORDER,k,n,N)
+local mu,gu,i,G1,ope,lu,SUMMAND:
+ 
+SUMMAND:=convert(SUMMAND1,factorial):
+mu:=ct(SUMMAND,ORDER,k,n,N):
+ 
+if mu=0 then
+ RETURN(0):
+fi:
+ 
+ope:=mu[1]:
+G1:=mu[2]*SUMMAND:
+gu:=0:
+ 
+for i from 0 to degree(ope,N) do
+gu:=gu+coeff(ope,N,i)*simplify1(SUMMAND,n,i):
+gu:=normal(gu):
+od:
+ 
+lu:=subs(k=k+1,mu[2])*simplify1(SUMMAND,k,1)-mu[2]:
+lu:=normal(lu):
+normal(gu/lu);
+end:
+ 
+ 
+findrec:=proc(f,DEGREE,ORDER,n,N)
+local ope,var,eq,a,i,j,n0,kv,var1,eq1,mu:
+if (1+DEGREE)*(1+ORDER)+2+ORDER>nops(f) then
+ERROR(`Insufficient data for a recurrence of order`,ORDER, `degree`,DEGREE):
+fi:
+ope:=0:
+var:={}:
+ 
+for i from 0 to ORDER do
+ for j from 0 to DEGREE do
+  ope:=ope+a[i,j]*n^j*N^i:
+  var:=var union {a[i,j]}:
+ od:
+od:
+    
+eq:={}:
+ 
+for n0 from 1 to (1+DEGREE)*(1+ORDER)+2 do
+  eq1:=0:
+ 
+  for i from 0 to ORDER do
+     eq1:=eq1+subs(n=n0,coeff(ope,N,i))*op(n0+i,f):
+  od:
+ 
+   eq:= eq union {eq1}:
+od:
+ 
+var1:=solve1(eq,var):
+ 
+kv:={}:
+ 
+for i from 1 to nops(var1) do
+ mu:=op(i,var1):
+ 
+if op(1,mu)=op(2,mu) then
+   kv:= kv union {op(1,mu)}:
+ fi:
+ 
+od:
+ope:=subs(var1,ope):
+ 
+ 
+if nops(kv)>1 then
+  print(` either DEGREE or ORDER are too high`):
+   print(`The output is not the minimal possible operator`):
+fi:
+ 
+for i from 1 to nops(kv) do
+  ope:=subs(op(i,kv)=1,ope):
+od:
+ 
+ope:
+ 
+end:
+        
+celine:=proc(f,ii,jj)
+local m,j,l,i,tt,yy,zz,rr,xx,ss,zy,
+ b, iii, k, n, r, zzz:
+ 
+m:='m':j:='j':l:='l':i:='i':
+iii:=ii*(jj+1)+jj:
+xx:=seq(b[i],i=0..iii):i:='i':
+ss:=numer(simplify(expand(sum(sum(b[i*(jj+1)+j]*f(n-j,k-i)/f(n,k), 
+            i=0..ii),j=0..jj)))):
+tt:=coeffs(collect(ss,k),k):
+yy:=solve1({tt},{xx}):
+zz:=simplify(sum(sum(b[l*(jj+1)+m]*F(n-m,k-l),l=0..ii),m=0..jj)): 
+i:='i':j:='j':lprint(` ` ):lprint(` `):lprint(`The full  recurrence is`):
+lprint(` `):
+zz:=numer(simplify(subs(yy,zz))):
+for i from 0 to ii do for j from 0 to jj do                
+zz:=collect(zz,F(n-j,k-i)) od od:
+lprint(zz,`==0`);zzz:=zz:
+l:='l':j:='j':m:='m':
+r:=subs(yy,simplify(expand(sum(sum(sum(b[l*(jj+1)+m],l=j+1..ii)*simplify(expand(f(n-m,k-j)/f(n,k))),j=0..ii),m=0..jj)))): 
+ 
+rr:=simplify(factor(simplify(r))):lprint(` ` ):lprint(` `):
+lprint(`The telescoped form is`);lprint(` `);
+zy:=factor(subs(yy,sum(simplify(sum(b[l*(jj+1)+m],l=0..ii))*F(n-m,k),m=0..jj))):
+lprint(zy,`==G(n,k)-G(n,k-1)`); 
+ 
+lprint(` `);
+lprint(`where G(n,k)=R(n,k)*F(n,k) and the rational function  R(n,k) is `):
+lprint(` `);
+rr;
+end:
+ 
+findgQR:=proc(Q,R,k,L)
+local j,g:
+ 
+for j from 1 to L do
+ g:=gcd(Q,subs(k=k+j,R)):
+ if degree(g,k)>0 then
+  RETURN(g,j):
+ fi:
+od:
+1,0:
+end:
+ 
+  
+ 
+ 
+tovu:=proc(SU,k,n)
+local gu:
+ 
+gu:=simplify1(simplify1(SU,n,1),k,1):
+ 
+if gu=1 then
+RETURN(0):
+else
+RETURN(1):
+fi:
+end:
+ 
+###########end EKHAD 
+ 
+ 
+
+#OpeBin(n,N,r): the operator for the sum of the r-th power of the
+#binomial coefficients followed by their initial conditions
+#For example, try:
+#OpeBin(n,N,3);
+OpeBin:=proc(n,N,r) local ope,k,n1:
+ope:=zeil(binomial(n,k)^r/2^(n*r),k,n,N)[1]:
+
+ope,[seq(add((n1!/k!/(n1-k)!)^r/2^r,k=0..n1),n1=1..degree(ope,N))]:
+end:
+
+
+
+#AsyBin(F,n,k,M,L): the asymptotics in n, up to order M,
+#of a binomial coefficient
+#sum Sum(F(n,k),k=0..n) (assuming F is supported between 0 and n
+#where F is a hypergeometric term in n and k, 
+#and L is the number of terms in the sequence
+#for estimating the constant in front
+#For example, try:
+#AsyBin(binomial(n,k)*binomial(n+k,k),n,k,5,1000);
+AsyBin:=proc(F,n,k,M,L) local k1,n1,ope,Ini,N:
+ope:=zeil(F,k,n,N):
+if ope=FAIL then
+RETURN(FAIL):
+fi:
+ope:=ope[1]:
+Ini:=[seq(add(subs({n=n1,k=k1},F),k1=0..n1),n1=1..degree(ope,N))]:
+
+AsyC(ope,n,N,M,Ini,L):
+
+end:
+
+
+#SipurBin(R,n,M,L): The story for sums of powers of binomial
+#coefficients. For example, try:
+#SipurBin(4,n,5,1000);
+SipurBin:=proc(R,n,M,L) local r,k,lu,t0:
+print(`These are the asymptotics of the sum of the powers of Pascal's`):
+print(`triangles for powers between 2 to `, R):
+t0:=time():
+for r from 2 to R do
+print(`The asymtotics of`):
+print(Sum(binomial(n,k)^r,k=0..n)):
+print(`up to order`, M, `is equal to `):
+lu:=AsyBin(binomial(n,k)^r,n,k,M,L):
+if lu=FAIL then
+ next:
+fi:
+print(lu[1]*lu[2]):
+
+od:
+
+print(`Everything is rigorous, but the constants in front are`):
+print(`non-rigorous (yet fairly reliable) estimates`):
+
+print(`This took`, time()-t0, `seconds of CPU time`):
+
+end:
+
+
+
+#AsyPerm(n,r,M,L): the asymptotics for the number of permutations
+#whose r-th power is the identity permutation. 
+#M is the desired order, and L is the number of terms in the
+#sequence used to estimate the constant
+#For example, try AsyPerm(n,2,5,1000);
+#
+AsyPerm:=proc(n,r,M,L) local N,ope:
+ope:=OpePerG(N,n,divisors(r)):
+AsyC(ope[1],n,N,M,ope[2],L):
+end:
+
+
+#SipurPerm(R,n,M,L): The story for the asymptotics for
+#the number of premutations pi  of [1,n] such that pi^r=Identity
+#for r from 2 to R (r=2 is involutions).
+#M is the desired order and L is the number of terms in the
+#squence for estimating the constant
+#(for some reason, it only works for R<=6).
+#For example, try:
+#SipurPerm(6,n,5,1000);
+SipurPerm:=proc(R,n,M,L) local r,lu,t0,pi, IdentityPerm:
+print(`These are the asymptotics for the number of permutations`):
+print(`whose r-th power is the identity permutation, for r between 2`):
+print(` and `, R):
+t0:=time():
+for r from 2 to R do
+print(`The asymtotics of the number of permutations pi of [1,n] such that`):
+print(pi^r=IdentityPerm):
+print(`up to order`, M, `is equal to `):
+lu:=AsyPerm(n,r,M,L):
+
+if lu=FAIL then
+ print(`Nothing found `):
+next:
+fi:
+
+print(lu[1]*lu[2]):
+print(`which in floating-point is`):
+print(evalf(lu[1]*lu[2])):
+od:
+
+print(`Everything is rigorous, but the constants in front are`):
+print(`non-rigorous (yet fairly reliable) estimates`):
+
+print(`This took`, time()-t0, `seconds of CPU time`):
+
+end:
+
+
+
+#AsyGen(ope,n,N,mu,M): inputs a linear recurrence operator with polynomial coefficients, 
+#in the variable n, and where the forward shift operator is denoted by N , i.e. Nf(n):=f(n+1)
+#and one of its characteristic roots, mu, finds the 
+#an asymptotic series whose leading term is mu^n that satisfies the recurrence, regardless of initial conditions.  Try:
+#AsyGen((n+5)*N^2-(3*n+4)*N+2*n+2,n,N,2);
+AsyGen:=proc(ope,n,N,mu,M) local Ope,ope1,gu,t, i,x,d,eq,var,c,f:
+
+Ope:=expand(numer(ope)):
+
+d:=degree(Ope,n):
+
+ope1:=coeff(expand(Ope),n,d):
+if simplify(subs(N=mu,ope1))<>0 then
+  RETURN(FAIL):
+fi:
+
+
+gu:=add( x^d*subs(n=1/x,coeff(Ope,N,i)) *  mu^i*(1+i*x)^t  , i=ldegree(Ope,N)..degree(Ope,N)):
+gu:=expand(gu):
+gu:=taylor(gu,x=0,2):
+
+if expand(coeff(gu,x,1))=0 then
+  RETURN(FAIL):
+fi:
+
+t:=solve(coeff(gu,x,1),t):
+
+f:=1+add(c[i]/n^i,i=1..M):
+
+var:={seq(c[i],i=1..M)}:
+gu:=add( x^d*subs(n=1/x,coeff(Ope,N,i)) *  mu^i*(1+i*x)^t*subs(n=(1+i*x)/x,f), i=ldegree(Ope,N)..degree(Ope,N)):
+gu:=expand(gu):
+gu:=taylor(gu,x=0,M+3):
+
+eq:={seq(expand(coeff(gu,x,i)),i=2..M+1)}:
+
+var:=solve(eq,var):
+
+if var=NULL then
+ RETURN(FAIL):
+fi:
+
+
+mu^n*n^t*subs(var,f):
+
+
+end:
+
+
+
+
+#AsyGenC(ope,n,N,mu,M,INI,K): See ezra
+AsyGenC:=proc(ope,n,N,mu,M,INI,K) local Ope,gu,L1,C:
+Ope:=expand(numer(ope)):
+
+gu:=AsyGen(ope,n,N,mu,M):
+
+if gu=FAIL then
+  RETURN(FAIL):
+fi:
+
+
+if nops(INI)<>degree(Ope,N) then
+print(INI, `should be of length`, degree(Ope,N)):
+ RETURN(FAIL):
+fi:
+
+L1:=SeqFromRec(Ope,n,N,INI,K):
+
+if abs(evalf(L1[K]/subs(n=K,gu)))<10^(-10) then
+  RETURN(FAIL):
+fi:
+
+C:=evalf(L1[K]/subs(n=K,gu)):
+
+C:=identify(C):
+
+C*gu:
+
+end:
+
+
+#CharRoots(ope,n,N): inputs a linear recurrence operator with polynomial coefficients, 
+#in the variable n, and where the forward shift operator is denoted by N , i.e. Nf(n):=f(n+1)
+#and outputs the ordered list
+#of its characteristic roots. Try:
+#CharRoots((n+4)*N^2-n*N-1,n,N);
+CharRoots:=proc(ope,n,N) local ope1,lu:
+ope1:=lcoeff(expand(ope),n):
+
+if degree(ope1,N)=0 then
+ RETURN(FAIL):
+fi:
+
+lu:=[solve(ope1,N)]:
+
+lu:=sort(lu):
+
+end:
+

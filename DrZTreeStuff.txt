@@ -1,0 +1,170 @@
+with(combinat):
+
+Help:=proc()
+print(`getApproxFunSol(eq,R,x,n,Rinit), FunEqForDegreeSet(S,R,x) FunEqForDegreeSetOrdered(S,R,x),cartProd(ListOfSets),ListAllTrees(n,S),TreeTotalVertices(Tree),TreeTotalHeight(Tree),fOfyForx(n,y,S),AlphaSeqForS(S,maxTime,N),SymbRationalDiff(R,eq,x,n),FindMultiVarGenFun(R,P,xP,x,t,N),ReduceRational(rat,eq,R),ReducePoly(P,eq,R),FyFixedPoint(S,x,y,n)`):
+print(``):
+print(`Run the command SpecificHelp on one of these function's names to get a description`):
+end:
+
+SpecificHelp:=proc(functionName):
+if(functionName=getApproxFunSol) then
+print(`given a function equation for the function R in the variable x, computes the first n terms of the fixed point starting with inital value for the function Rinit`):
+print(`for example, getApproxFunSol(x*R^2+x^3, R, x, 10, 1) would return x^3+x^7, since the true fixed point of the functional eqation R= x*R^2+x^3 has only x^3+x^7 in its first ten powers of x.`):
+
+elif (functionName=FunEqForDegreeSet) then
+print(`given a set of allowed degrees S, outputs a functional equation for the generating function of the number of unordered trees. R is the name of the function used and x it's variable.`):
+print(`for example, if we allow 0,2, or 5 children, this corresponds to calling FunEqForDegreeSet({0,2,5},R,x), which outputs x+x*R^2+x*R^5 representing the equation R = x+x*R^2+x*R^5`):
+elif (functionName=FunEqForDegreeSetOrdered) then
+
+print(`given a set of allowed degrees S, outputs a functional equation for the generating function of the number of ordered trees. R is the name of the function used and x it's variable.`):
+print(`for example, if we allow 0,2, or 5 children, this corresponds to calling FunEqForDegreeSet({0,2,5},R,x), which outputs x+x*R^2/2+x*R^5/120 representing the equation R = x+x*R^2/2+x*R^5/120`):
+
+elif (functionName=SymbRationalDiff) then
+print(`outputs an expression for the nth derivative of a function R in the variable x that satisfies the relation eq`):
+print(`for example, if we know that R satisfies the equation R = R^2*x+x^2, and wanted to find a formula for the second derivative of R, as a function of R, then, we would call SymbRationalDiff(R,R^2*x+x^2-R,x,2), getting the lovely answer that R'' = (2*(x^5+4*R*x^3+2*x^2-R))/(x^2*(8*R*x^4-4*x^3-2*R*x+1))`):
+print(`The expression will have no powers of R greater than or equal to the highest power of R that appears in the equation eq`):
+
+elif (functionName=FindMultiVarGenFun) then
+print(`finds the exact formula for a_i(x) in the expansion f(x,t) = sum(a_i(x)t^i,i=1..infty)`):
+print(`for example, FindMultiVarGenFun(R,y^2/2,y,x,t,3) computes the unordered complete binary tree case for the first three powers of t`): 
+
+elif(functionName=FyFixedPoint) then
+print(`iterates the functional equation arising from the allowed degree set S and truncates up to the nth power of x`):
+print(`continues this until the result no longer changes, giving the true solution up to the nth power of x`):
+print(`for example, running FyFixedPoint({0,2},x,y,3) gives x^3*y^2+x, since there is one tre with no total height on one vertex, no trees with exactly 0 or 2 children on two vertices, and one tree on three vertices, with total height 2`):
+
+elif(functionName=ReduceRational) then
+print(`first argument is a rational expression in R, and R satisfies the polynomial relation eq=0`):
+print(`This procedure will simplify the given rational expression using the given eq, reducing the degree on top and bottom to at most degree(eq,R)-1`):
+print(`For example, ReduceRational((y^3+1)/(y^2), y^3+y^2-2,y) = (-y^2+3)/(y^2)`):
+
+elif(functionName=ReducePoly) then
+print(`first argument is a polynomail expression in R, and R satisfies the polynomial relation eq=0`):
+print(`This procedure will simplify the given polynomial expression by one step using the given eq, reducing the degree by at least 1`):
+print(`For example, ReducePoly(3y^3+y^2, y^3+y^2+1,y) = -2y^2-3`):
+else
+print(`unrecognized function name, please run Help() to see the list of all function signatures`):
+fi:
+end:
+
+#given an expression for R involving R and x, it gives a solution for R whoose taylor series agrees with the true solution up to the nth power of x
+getApproxFunSol:=proc(eq,R,x,n,Rinit) local Ret,RetOld:
+#Secret symbol that we are hoping will never be equal to Rinit
+RetOld:= potato:
+Ret:= Rinit:
+while(RetOld<>Ret) do
+  RetOld:=Ret:
+  Ret:= subs(R=Ret,eq):
+  Ret:= add(coeff(Ret,x,i)*x^i,i=0..n):
+od:
+Ret:
+end:
+
+
+#indistinguishable children
+FunEqForDegreeSet:= proc(S,R,x)
+add(R^i*x/(i!),i in S):
+end:
+
+#ordered children
+FunEqForDegreeSetOrdered:= proc(S,R,x)
+add(R^i*x,i in S):
+end:
+
+
+NMoments:=proc(eq,J,R,x,N) local Foo,ret,i,j,k,eqn;
+Foo[1] = R:
+for i from 1 to N-1 do
+Foo[1$(i+1)] = SymbRationalDiff(R,eq,x,i):
+od:
+for i from 1 to N do
+  eqn := subs(y=1,(D[2$i](R))(x,y) = diff(subs(R = R(x*y,y), eq),y$i));
+  eqn := subs({seq(seq((D[1$i,2$(j-k)](R))(x,1) = Foo[j,k],k=0..j),j=1..i)},eqn);
+  Foo[i,0] := solve(eqn,Foo[i,0]):
+  for j from 1 to N-i do
+    Foo[i,j] := subs(diff(R,x) = Foo[1,2],diff(Foo[i,j-1],x)):
+  od:
+od:
+end:
+
+#f_y fixed point
+#given a degree set S, computes the bivariate generating function up to given degree in x
+FyFixedPoint:=proc(S,x,y,N) local f,eq,fold,i,j:
+eq:=R->add(x^i*coeff(x*(add(subs(x=x*y,R^j),j in S)),x,i),i=1..N):
+fold:=x:
+f:=eq(fold):
+while(f<>fold) do
+  fold:=f:
+  f:=eq(fold):
+od:
+f:
+end:
+
+#Supposing that R is a solution of 0 = eq(R) returns an expression for nth derivative as a rational function of R
+SymbRationalDiff := proc(R,eq,x,n) local ret,d:
+option remember:
+if (n=0) then
+  ret:=R:
+elif(n=1) then
+  ret:=normal(subs(R(x) = R,solve(diff(0 = subs(R=R(x),eq),x), diff(R(x),x)))):
+else:
+  ret:=normal(subs(R(x)= R,subs({seq(diff(R(x),x$i) = SymbRationalDiff(R,eq,x,i),i=1..n-1)},solve(diff(0 = subs(R=R(x),eq),x$n), diff(R(x),x$n))))): 
+fi:
+ReduceRational(ret,eq,R):
+end: 
+
+
+#Given an exact solution for the enumeration problem, R, computes the solution to the height statistic problem
+#suppose that g(x,y) = sum( h_i(x) y^i), then
+#sum( h_i(x) y^i) = x + x*(P(sum( h_i(x+x*y) y^i)))
+#= x + x*(P(sum( sum((d/(dx))^i(a_i(x))*(xy)^i y^i)))
+#in this, a_0(x) is the enumeration version, and all of it's derivatives are a rational function of it
+# we go one at a time to the next a_i(x), since that too will be rational in a_0(x), we can compute all it's derivatives as rational functions of a_0(x)
+
+FindMultiVarGenFun:=proc(R,P,xP,x,t,tDeg) local eq,a,b,i,k,n:
+for i from 0 to tDeg do:
+a[0][i] := SymbRationalDiff(R,x+x*subs(xP=R,P)-R,x,i):
+od:
+eq:=x+x*subs(xP = add(add(b[i][k]/k!*x^k*t^(i+k),k=0..tDeg),i=0..tDeg),P):
+eq:=subs({seq(b[0][i] = a[0][i],i=0..tDeg)},eq):
+for n from 1 to tDeg do:
+  a[n][0] := normal(solve(b[n][0] = coeff(eq,t,n),b[n][0])):
+  a[n][0] := ReduceRational(a[n][0],x+x*subs(xP=R,P)-R,R):
+  for i from 1 to tDeg do:
+    a[n][i] := normal(subs({diff(R(x),x) = a[0][1],R(x) = x},diff(subs(R=R(x),a[n][i-1]),x))):
+    a[n][i] := ReduceRational(a[n][i],x+x*subs(xP=R,P)-R,R):
+  od:
+  eq:=subs({seq(b[n][i] = a[n][i],i=0..tDeg)},eq):
+od:
+add(a[n][0] * t^n,n=0..tDeg):
+end:	
+
+ReduceRational := proc(rat,eq,R) local r,q,d,ret:
+d:=degree(eq,R):
+ret:=rat:
+while max(degree(numer(ret),R),degree(denom(ret),R))>=d do
+  ret:=normal(ReducePoly(expand(numer(ret),eq,R),eq,R)/ReducePoly(expand(denom(ret)),eq,R)):
+od:
+ret:
+end:
+
+#Given a polynomial P in R, where R satisfies 0=eq, reduces the degree of P by at least one using the equation
+ReducePoly:= proc(P,eq,R) local r,q,d:
+d:=degree(eq,R):
+q:=quo(P,R^d,R,'r'):
+normal(r+ q*(-eq/coeff(eq,R,d) +R^d)):
+end:
+
+FindMoments:=proc(MultiVarGenFun,x,t,degree,maxX) local xseries:
+xseries:=taylor(subs(t=t+1,MultiVarGenFun),x,maxX+1):
+[seq(AveAndMoms(coeff(xseries,x,i),t,degree),i=1..maxX)]:
+end:
+
+#given a MVGF with t's switches back to y, expands in x, and gives the normalized moments
+FindNormalizedMoments:=proc(MultiVarGenFun,x,t,degree,maxX) local xseries:
+xseries:=taylor(subs(t=t+1,MultiVarGenFun),x,maxX+1):
+[seq(AlphaSeq(coeff(xseries,x,i),t,degree),i=1..maxX)]:
+end:
+
+
+
